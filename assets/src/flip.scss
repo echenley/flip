@@ -1,0 +1,159 @@
+
+// Flip - A Game About Perspective
+// ==============================
+// Author:     Evan Henley
+// Author URI: henleyedition.com
+
+$tile-size:      50px;
+$character-size: 30px;
+
+// icons
+$player:  '\263a'; // smiley
+$exit:    '\2740'; // flower
+$flip-y:  '\2194'; // left-right arrow
+$flip-x:  '\2195'; // up-down arrow
+
+$dark-color: #24283d;
+$background-color: lighten($dark-color, 20%); // #4a527d
+$light-color: lighten($dark-color, 70%);      // #dcdeea
+
+body {
+    background: $background-color;
+    color: $light-color;
+}
+
+.container {
+    position: relative;
+    margin: 40px auto;
+    max-width: 700px;
+    text-align: center;
+    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+    cursor: default;
+    perspective: 1200px;
+}
+
+#game-board {
+    position: relative;
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    background: $light-color;
+    color: $dark-color;
+    border: 2px solid $dark-color;
+    transition: transform 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
+    font-weight: bold;
+    &.flipped {
+        background: $dark-color;
+        color: $light-color;
+        border: 2px solid $light-color;
+    }
+}
+
+.tile,
+.button {
+    // get rid of highlighting
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.tile {
+    float: left;
+    width: $tile-size + 2px;
+    height: $tile-size + 2px;
+    line-height: $tile-size;
+    font-size: $character-size;
+    box-sizing: border-box;
+    margin: -1px;
+    text-align: center;
+}
+
+#player {
+    position: absolute;
+    float: none;
+    margin: 0;
+    width: $tile-size;
+    height: $tile-size;
+    transition: transform 0.1s, color 0.4s;
+    color: $dark-color;
+    font-size: $character-size + 5px;
+    &.flip {
+        color: $light-color;
+    }
+    &:before {
+        content: $player;
+    }
+}
+
+
+/* =========================
+   Tile Classes
+   ========================= */
+
+// walls
+#game-board:not(.flipped) .wall-right {
+    border-right: 2px solid $dark-color;
+}
+#game-board:not(.flipped) .wall-bottom {
+    border-bottom: 2px solid $dark-color;
+}
+.flipped .back-wall-right {
+    border-right: 2px solid $light-color;
+}
+.flipped .back-wall-bottom {
+    border-bottom: 2px solid $light-color;
+}
+
+// flip tiles
+.flip-x:before,
+.flip-y:before,
+.back-flip-x:before,
+.back-flip-y:before {
+    transition: color 0.4s;
+}
+.flip-x:before,
+.back-flip-x:after {
+    content: $flip-x;
+    .flipped & {
+        color: lighten($dark-color, 10%);
+    }
+}
+.flip-y:before,
+.back-flip-y:after {
+    content: $flip-y;
+    #game-board:not(.flipped) & {
+        color: darken($light-color, 10%);
+    }
+}
+
+// exit square
+.exit:before {
+    font-size: $character-size + 5px;
+    content: $exit;
+    transition: color 0.4s;
+    .flipped & {
+        color: lighten($dark-color, 10%);
+    }
+}
+
+
+/* =========================
+   Menu Classes
+   ========================= */
+
+.button {
+    display: inline-block;
+    padding: 4px 10px;
+    color: $light-color;
+    border: 2px solid $light-color;
+    transition: transform 0.4s;
+    &:hover { cursor: pointer; }
+}
+
+.win {
+    // translateZ prevents right half from being unclickable in webkit
+    transform: rotateY(360deg) translateZ(1px);
+}
+
+
+
+

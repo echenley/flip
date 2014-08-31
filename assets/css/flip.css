@@ -1,0 +1,127 @@
+body {
+  background: #4a527d;
+  color: #dcdeea; }
+
+.container {
+  position: relative;
+  margin: 40px auto;
+  max-width: 700px;
+  text-align: center;
+  font-family: Consolas, Monaco, 'Andale Mono', monospace;
+  cursor: default;
+  -webkit-perspective: 1200px;
+          perspective: 1200px; }
+
+#game-board {
+  position: relative;
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  background: #dcdeea;
+  color: #24283d;
+  border: 2px solid #24283d;
+  -webkit-transition: -webkit-transform 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
+          transition: transform 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
+  font-weight: bold; }
+  #game-board.flipped {
+    background: #24283d;
+    color: #dcdeea;
+    border: 2px solid #dcdeea; }
+
+.tile,
+.button {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+  -webkit-touch-callout: none; }
+
+.tile {
+  float: left;
+  width: 52px;
+  height: 52px;
+  line-height: 50px;
+  font-size: 30px;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  margin: -1px;
+  text-align: center; }
+
+#player {
+  position: absolute;
+  float: none;
+  margin: 0;
+  width: 50px;
+  height: 50px;
+  -webkit-transition: -webkit-transform 0.1s, color 0.4s;
+          transition: transform 0.1s, color 0.4s;
+  color: #24283d;
+  font-size: 35px; }
+  #player.flip {
+    color: #dcdeea; }
+  #player:before {
+    content: "\263a"; }
+
+/* =========================
+   Tile Classes
+   ========================= */
+#game-board:not(.flipped) .wall-right {
+  border-right: 2px solid #24283d; }
+
+#game-board:not(.flipped) .wall-bottom {
+  border-bottom: 2px solid #24283d; }
+
+.flipped .back-wall-right {
+  border-right: 2px solid #dcdeea; }
+
+.flipped .back-wall-bottom {
+  border-bottom: 2px solid #dcdeea; }
+
+.flip-x:before,
+.flip-y:before,
+.back-flip-x:before,
+.back-flip-y:before {
+  -webkit-transition: color 0.4s;
+          transition: color 0.4s; }
+
+.flip-x:before,
+.back-flip-x:after {
+  content: "\2195"; }
+  .flipped .flip-x:before, .flipped
+  .back-flip-x:after {
+    color: #373d5d; }
+
+.flip-y:before,
+.back-flip-y:after {
+  content: "\2194"; }
+  #game-board:not(.flipped) .flip-y:before, #game-board:not(.flipped)
+  .back-flip-y:after {
+    color: #bcc0d7; }
+
+.exit:before {
+  font-size: 35px;
+  content: "\2740";
+  -webkit-transition: color 0.4s;
+          transition: color 0.4s; }
+  .flipped .exit:before {
+    color: #373d5d; }
+
+/* =========================
+   Menu Classes
+   ========================= */
+.button {
+  display: inline-block;
+  padding: 4px 10px;
+  color: #dcdeea;
+  border: 2px solid #dcdeea;
+  -webkit-transition: -webkit-transform 0.4s;
+          transition: transform 0.4s; }
+  .button:hover {
+    cursor: pointer; }
+
+.win {
+  -webkit-transform: rotateY(360deg) translateZ(1px);
+          transform: rotateY(360deg) translateZ(1px); }
+
+/*# sourceMappingURL=flip.css.map */
