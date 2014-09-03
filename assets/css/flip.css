@@ -1,6 +1,6 @@
 body {
-  background: #4a527d;
-  color: #dcdeea; }
+  background: #527d4a;
+  color: #deeadc; }
 
 .container {
   position: relative;
@@ -12,21 +12,95 @@ body {
   -webkit-perspective: 1200px;
           perspective: 1200px; }
 
-#game-board {
+#game-board-wrapper {
   position: relative;
   display: inline-block;
-  padding: 0;
+  -webkit-transition: -webkit-transform 0.4s;
+          transition: transform 0.4s;
+  -webkit-perspective: 1200px;
+          perspective: 1200px; }
+  #game-board-wrapper.unfold {
+    -webkit-transform: translate3d(-50%, 0, 0);
+            transform: translate3d(-50%, 0, 0); }
+
+#game-board {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  -webkit-transition: -webkit-transform 0.4s;
+          transition: transform 0.4s;
+  -webkit-perspective: 1200px;
+          perspective: 1200px; }
+
+#game-board-front,
+#game-board-back {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1px;
   margin: 0;
-  background: #dcdeea;
-  color: #24283d;
-  border: 2px solid #24283d;
-  -webkit-transition: -webkit-transform 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
-          transition: transform 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
+  -webkit-transition: -webkit-filter 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
+          transition: filter 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
   font-weight: bold; }
-  #game-board.flipped {
-    background: #24283d;
-    color: #dcdeea;
-    border: 2px solid #dcdeea; }
+
+#game-board-front {
+  background: #deeadc;
+  color: #283d24;
+  border: 2px solid #283d24;
+  opacity: 0.95;
+  -webkit-filter: none;
+          filter: none;
+  -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
+          transition: transform 0.4s, opacity 0.4s;
+  -webkit-transform-origin: left;
+      -ms-transform-origin: left;
+          transform-origin: left; }
+  .invert-x #game-board-front {
+    -webkit-transform-origin: right;
+        -ms-transform-origin: right;
+            transform-origin: right; }
+  .flipped #game-board-front {
+    opacity: 0.05;
+    -webkit-filter: blur(1px);
+            filter: blur(1px); }
+  .unfold #game-board-front {
+    -webkit-filter: none;
+            filter: none;
+    opacity: 1; }
+  .unfold .flipped #game-board-front {
+    -webkit-transform: rotateY(180deg);
+            transform: rotateY(180deg); }
+  .unfold.invert-x .flipped #game-board-front {
+    -webkit-transform: rotateY(-180deg);
+            transform: rotateY(-180deg); }
+
+#game-board-back {
+  z-index: -1;
+  background: #283d24;
+  color: #deeadc;
+  border: 2px solid #deeadc;
+  -webkit-filter: blur(1px);
+          filter: blur(1px);
+  -webkit-transition: -webkit-transform 0.4s;
+          transition: transform 0.4s;
+  -webkit-transform-origin: right;
+      -ms-transform-origin: right;
+          transform-origin: right; }
+  .invert-x #game-board-back {
+    -webkit-transform-origin: left;
+        -ms-transform-origin: left;
+            transform-origin: left; }
+  .flipped #game-board-back, .unfold #game-board-back {
+    -webkit-filter: none;
+            filter: none; }
+  .unfold #game-board:not(.flipped) #game-board-back {
+    -webkit-transform: rotateY(-180deg);
+            transform: rotateY(-180deg); }
+  .unfold.invert-x #game-board:not(.flipped) #game-board-back {
+    -webkit-transform: rotateY(180deg);
+            transform: rotateY(180deg); }
 
 .tile,
 .button {
@@ -49,63 +123,50 @@ body {
   text-align: center; }
 
 #player {
+  z-index: 2;
   position: absolute;
-  float: none;
-  margin: 0;
+  top: 0;
+  left: 0;
+  margin: 2px 0 0 2px;
   width: 50px;
   height: 50px;
-  -webkit-transition: -webkit-transform 0.1s, color 0.4s;
-          transition: transform 0.1s, color 0.4s;
-  color: #24283d;
+  -webkit-transition: -webkit-transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
+          transition: transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
+  color: #283d24;
   font-size: 35px; }
   #player.flip {
-    color: #dcdeea; }
+    color: #deeadc; }
   #player:before {
     content: "\263a"; }
 
 /* =========================
    Tile Classes
    ========================= */
-#game-board:not(.flipped) .wall-right {
-  border-right: 2px solid #24283d; }
+#game-board-front .wall-right {
+  border-right: 2px solid #283d24; }
+#game-board-front .wall-bottom {
+  border-bottom: 2px solid #283d24; }
 
-#game-board:not(.flipped) .wall-bottom {
-  border-bottom: 2px solid #24283d; }
-
-.flipped .back-wall-right {
-  border-right: 2px solid #dcdeea; }
-
-.flipped .back-wall-bottom {
-  border-bottom: 2px solid #dcdeea; }
+#game-board-back .wall-right {
+  border-right: 2px solid #deeadc; }
+#game-board-back .wall-bottom {
+  border-bottom: 2px solid #deeadc; }
 
 .flip-x:before,
-.flip-y:before,
-.back-flip-x:before,
-.back-flip-y:before {
+.flip-y:before {
+  display: inline-block;
   -webkit-transition: color 0.4s;
           transition: color 0.4s; }
 
-.flip-x:before,
-.back-flip-x:after {
+.flip-x:before {
   content: "\2195"; }
-  .flipped .flip-x:before, .flipped
-  .back-flip-x:after {
-    color: #373d5d; }
 
-.flip-y:before,
-.back-flip-y:after {
+.flip-y:before {
   content: "\2194"; }
-  #game-board:not(.flipped) .flip-y:before, #game-board:not(.flipped)
-  .back-flip-y:after {
-    color: #bcc0d7; }
 
 .exit:before {
   font-size: 35px;
-  content: "\2740";
-  -webkit-transition: color 0.4s;
-          transition: color 0.4s; }
-  .flipped .exit:before {
-    color: #373d5d; }
+  content: "\2740"; }
 
 /* =========================
    Menu Classes
@@ -113,12 +174,14 @@ body {
 .button {
   display: inline-block;
   padding: 4px 10px;
-  color: #dcdeea;
-  border: 2px solid #dcdeea;
+  color: #deeadc;
+  border: 2px solid #deeadc;
   -webkit-transition: -webkit-transform 0.4s;
           transition: transform 0.4s; }
   .button:hover {
     cursor: pointer; }
+  .button:not(:first-child) {
+    margin-left: 10px; }
 
 .win {
   -webkit-transform: rotateY(360deg) translateZ(1px);
