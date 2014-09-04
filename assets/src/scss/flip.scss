@@ -5,13 +5,7 @@
 // Author URI: henleyedition.com
 
 $tile-size:      50px;
-$character-size: 30px;
-
-// icons
-$player:  '\263a'; // smiley
-$exit:    '\2740'; // flower
-$flip-y:  '\2194'; // left-right arrow
-$flip-x:  '\2195'; // up-down arrow
+$character-size: 16px;
 
 $dark-color: #283d24;
 $background-color: lighten($dark-color, 20%); // #4a527d
@@ -20,33 +14,38 @@ $light-color: lighten($dark-color, 70%);      // #dcdeea
 $faded-light: darken($light-color, 10%);
 $faded-dark: lighten($dark-color, 10%);
 
-%blur {
-    filter: blur(1px);
-}
-
 body {
     background: $background-color;
     color: $light-color;
 }
 
-.container {
-    position: relative;
-    margin: 40px auto;
-    max-width: 700px;
-    text-align: center;
-    font-family: Consolas, Monaco, 'Andale Mono', monospace;
-    cursor: default;
-    perspective: 1200px;
+.title-flip {
+    display: inline-block;
+    transform: rotateY(180deg);
+    color: $dark-color;
 }
 
+.container {
+    position: relative;
+    margin: 80px auto;
+    max-width: 500px;
+    text-align: center;
+    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+}
+
+// wraps #game-board and #player
 #game-board-wrapper {
     position: relative;
     display: inline-block;
     transition: transform 0.4s;
+    cursor: default;
     perspective: 1200px;
-    &.unfold { transform: translate3d(-50%, 0, 0); }
+    &.unfold {
+        transform: translate3d(-50%, 0, 0);
+    }
 }
 
+// wraps #game-board-front and #game-board-back
 #game-board {
     position: relative;
     height: 100%;
@@ -60,19 +59,23 @@ body {
     position: absolute;
     top: 0; bottom: 0; left: 0; right: 0;
     padding: 1px;
-    margin: 0;
     transition: filter 0.4s,
                 background 0.4s,
                 border-color 0.4s,
                 color 0.4s;
-    font-weight: bold;
+    overflow: hidden;
+    .unfold &,
+    .unfold .flipped & {
+        filter: none;
+        opacity: 1;
+    }
 }
 
 #game-board-front {
     background: $light-color;
     color: $dark-color;
     border: 2px solid $dark-color;
-    opacity: 0.95;
+    opacity: 0.91;
     filter: none;
     transition: transform 0.4s,
                 opacity 0.4s;
@@ -81,12 +84,8 @@ body {
         transform-origin: right;
     }
     .flipped & {
-        opacity: 0.05;
+        opacity: 0.09;
         filter: blur(1px);
-    }
-    .unfold & {
-        filter: none;
-        opacity: 1;
     }
     .unfold .flipped & {
         transform: rotateY(180deg);
@@ -107,8 +106,7 @@ body {
     .invert-x & {
         transform-origin: left;
     }
-    .flipped &,
-    .unfold & {
+    .flipped & {
         filter: none;
     }
     .unfold #game-board:not(.flipped) & {
@@ -144,14 +142,14 @@ body {
     margin: 2px 0 0 2px;
     width: $tile-size;
     height: $tile-size;
-    transition: transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
+    transition: transform 0.1s,
+                color 0.4s,
+                top 0.4s,
+                left 0.4s;
     color: $dark-color;
     font-size: $character-size + 5px;
     &.flip {
         color: $light-color;
-    }
-    &:before {
-        content: $player;
     }
 }
 
@@ -161,7 +159,6 @@ body {
    ========================= */
 
 // walls
-// order is important here due to overlapping properties
 #game-board-front {
     .wall-right {
         border-right: 2px solid $dark-color;
@@ -179,47 +176,34 @@ body {
     }
 }
 
-// flip tiles
-.flip-x:before,
-.flip-y:before {
-    display: inline-block;
+.fa-key {
     transition: color 0.4s;
+    .hasKey & {
+        color: transparent;
+    }
 }
-.flip-x:before {
-    content: $flip-x;
-}
-.flip-y:before {
-    content: $flip-y;
-}
-
-// exit square
-.exit:before {
-    font-size: $character-size + 5px;
-    content: $exit;
-}
-
 
 /* =========================
    Menu Classes
    ========================= */
 
-.button {
-    display: inline-block;
-    padding: 4px 10px;
+
+.instruction {
+
+}
+
+.navigation {
+    position: relative;
+    text-align: center;
+}
+
+.nav-item {
+    padding: 8px;
     color: $light-color;
-    border: 2px solid $light-color;
-    transition: transform 0.4s;
-    &:hover { cursor: pointer; }
-    &:not(:first-child) {
-        margin-left: 10px;
+    background: $background-color;
+    transform: none;
+    &:hover {
+        cursor: pointer;
     }
 }
-
-.win {
-    // translateZ prevents right half from being unclickable in webkit
-    transform: rotateY(360deg) translateZ(1px);
-}
-
-
-
 

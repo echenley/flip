@@ -2,21 +2,25 @@ body {
   background: #527d4a;
   color: #deeadc; }
 
+.title-flip {
+  display: inline-block;
+  -webkit-transform: rotateY(180deg);
+          transform: rotateY(180deg);
+  color: #283d24; }
+
 .container {
   position: relative;
-  margin: 40px auto;
-  max-width: 700px;
+  margin: 80px auto;
+  max-width: 500px;
   text-align: center;
-  font-family: Consolas, Monaco, 'Andale Mono', monospace;
-  cursor: default;
-  -webkit-perspective: 1200px;
-          perspective: 1200px; }
+  font-family: Consolas, Monaco, 'Andale Mono', monospace; }
 
 #game-board-wrapper {
   position: relative;
   display: inline-block;
   -webkit-transition: -webkit-transform 0.4s;
           transition: transform 0.4s;
+  cursor: default;
   -webkit-perspective: 1200px;
           perspective: 1200px; }
   #game-board-wrapper.unfold {
@@ -40,16 +44,21 @@ body {
   left: 0;
   right: 0;
   padding: 1px;
-  margin: 0;
   -webkit-transition: -webkit-filter 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
           transition: filter 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
-  font-weight: bold; }
+  overflow: hidden; }
+  .unfold #game-board-front, .unfold .flipped #game-board-front, .unfold
+  #game-board-back, .unfold .flipped
+  #game-board-back {
+    -webkit-filter: none;
+            filter: none;
+    opacity: 1; }
 
 #game-board-front {
   background: #deeadc;
   color: #283d24;
   border: 2px solid #283d24;
-  opacity: 0.95;
+  opacity: 0.91;
   -webkit-filter: none;
           filter: none;
   -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
@@ -62,13 +71,9 @@ body {
         -ms-transform-origin: right;
             transform-origin: right; }
   .flipped #game-board-front {
-    opacity: 0.05;
+    opacity: 0.09;
     -webkit-filter: blur(1px);
             filter: blur(1px); }
-  .unfold #game-board-front {
-    -webkit-filter: none;
-            filter: none;
-    opacity: 1; }
   .unfold .flipped #game-board-front {
     -webkit-transform: rotateY(180deg);
             transform: rotateY(180deg); }
@@ -92,7 +97,7 @@ body {
     -webkit-transform-origin: left;
         -ms-transform-origin: left;
             transform-origin: left; }
-  .flipped #game-board-back, .unfold #game-board-back {
+  .flipped #game-board-back {
     -webkit-filter: none;
             filter: none; }
   .unfold #game-board:not(.flipped) #game-board-back {
@@ -115,7 +120,7 @@ body {
   width: 52px;
   height: 52px;
   line-height: 50px;
-  font-size: 30px;
+  font-size: 16px;
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
@@ -133,11 +138,9 @@ body {
   -webkit-transition: -webkit-transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
           transition: transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
   color: #283d24;
-  font-size: 35px; }
+  font-size: 21px; }
   #player.flip {
     color: #deeadc; }
-  #player:before {
-    content: "\263a"; }
 
 /* =========================
    Tile Classes
@@ -152,39 +155,27 @@ body {
 #game-board-back .wall-bottom {
   border-bottom: 2px solid #deeadc; }
 
-.flip-x:before,
-.flip-y:before {
-  display: inline-block;
+.fa-key {
   -webkit-transition: color 0.4s;
           transition: color 0.4s; }
-
-.flip-x:before {
-  content: "\2195"; }
-
-.flip-y:before {
-  content: "\2194"; }
-
-.exit:before {
-  font-size: 35px;
-  content: "\2740"; }
+  .hasKey .fa-key {
+    color: transparent; }
 
 /* =========================
    Menu Classes
    ========================= */
-.button {
-  display: inline-block;
-  padding: 4px 10px;
-  color: #deeadc;
-  border: 2px solid #deeadc;
-  -webkit-transition: -webkit-transform 0.4s;
-          transition: transform 0.4s; }
-  .button:hover {
-    cursor: pointer; }
-  .button:not(:first-child) {
-    margin-left: 10px; }
+.navigation {
+  position: relative;
+  text-align: center; }
 
-.win {
-  -webkit-transform: rotateY(360deg) translateZ(1px);
-          transform: rotateY(360deg) translateZ(1px); }
+.nav-item {
+  padding: 8px;
+  color: #deeadc;
+  background: #527d4a;
+  -webkit-transform: none;
+      -ms-transform: none;
+          transform: none; }
+  .nav-item:hover {
+    cursor: pointer; }
 
 /*# sourceMappingURL=flip.css.map */

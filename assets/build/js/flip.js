@@ -10,41 +10,15 @@
     var levels = [
     {
         level: 1,
-        front: [['r','b','b'],
+        front: [['r','bk','xb'],
                 ['r','','b'],
                 ['yr','x','E']],
         back:  [['','b','xb'],
                 ['b','yrb','x'],
-                ['','','']],
+                ['','x','']],
         height: 3,
         width: 3,
-        startPosition: { x: 0, y: 0 },
-        goalPosition: { x: 2, y: 2}
-    },
-    {
-        level: 2,
-        front: [['','','r','y',''],
-                ['','Y','r','',''],
-                ['','','r','',''],
-                ['','','r','','E'],
-                ['x','','r','','']],
-        height: 5,
-        width: 5,
-        startPosition: { x: 0, y: 0 },
-        goalPosition: { x: 4, y: 3 }
-    },
-    {
-        level: 3,
-        front: [['','','Rr','y','',''],
-                ['','Y','Rr','','',''],
-                ['','','Rr','','E',''],
-                ['','','Rr','','',''],
-                ['x','','Rr','','',''],
-                ['x','','Rr','','','']],
-        height: 6,
-        width: 6,
-        startPosition: { x: 0, y: 0 },
-        goalPosition: { x: 4, y: 2 }
+        startPosition: { x: 0, y: 0 }
     }
     ];
 
@@ -73,7 +47,7 @@
             gameBoard.style.transform = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
             gameBoard.style.webkitTransform = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
         },
-        flip: function(axis) {
+        flip: function(axis, callback) {
             var playerPosition = this.state.playerPosition;
             var boardBoundary, oppositeAxis, flipX, flipY;
 
@@ -102,6 +76,12 @@
                 flipY: flipY ? !this.state.flipY : this.state.flipY,
                 flipped: !this.state.flipped
             });
+
+            setTimeout(function() {
+                if (callback) { callback(); }
+                // check for events again
+                this.performTileEvents(playerPosition, null, callback);
+            }.bind(this), 400);
         },
         isValidMove: function(from, to, direction, tileset) {
             var wallExists;
@@ -143,32 +123,35 @@
             }
             return true;
         },
-        performTileEvents: function(tile, tileset) {
+        performTileEvents: function(tile, tileset, callback) {
 
             tileset = tileset || (this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front);
 
-            var tileCharacters = tileset[tile.y][tile.x].split(''),
-                playerPosition = this.state.playerPosition;
+            var tileCharacters = tileset[tile.y][tile.x].split('');
 
-            function afterFlip() {
-                // check for win
-                this.setState({
-                    win: this.checkBoard(playerPosition),
-                });
-                // check for events
-                this.performTileEvents(playerPosition);
-            }
-
-            function flipAndRecurse(axis) {
-                this.flip(axis);
-                setTimeout(afterFlip.bind(this), 400);
-            }
+            this.setState({ menuStatus: 'Get to your car.' });
 
             if (tileCharacters.indexOf('x') !== -1) {
-                flipAndRecurse.call(this, 'x');
+                this.flip('x', callback);
             } else if (tileCharacters.indexOf('y') !== -1) {
-                flipAndRecurse.call(this, 'y');
+                this.flip('y', callback);
+            } else if (tileCharacters.indexOf('k') !== -1 && !this.state.hasKey) {
+                this.setState({
+                    hasKey: true,
+                    menuStatus: 'Got the key!'
+                });
+                callback();
+            } else if (tileCharacters.indexOf('E') !== -1) {
+                this.checkWinCondition();
+                callback();
+            } else {
+                callback();
             }
+        },
+        enableMove: function() {
+            this.setState({
+                moveDisabled: false
+            });
         },
         move: function(direction) {
             var tileset = this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front;
@@ -181,6 +164,10 @@
                 y: from.y + (direction.y * invertY)
             };
 
+            if (this.state.moveDisabled) {
+                return;
+            }
+
             if (this.isValidMove(from, to, direction, tileset)) {
 
                 var player = document.getElementById('player');
@@ -188,28 +175,30 @@
                     translateX = this.state.flipY ? (this.state.currentLevel.width - to.x - 1) : to.x;
                 var gridTranslate = this.getGridTranslate(translateX, translateY);
 
+                this.setState({
+                    moveDisabled: true
+                });
+
                 player.style.transform = gridTranslate;
                 player.style.webkitTransform = gridTranslate;
 
                 // Update Game State
-                this.setState({
-                    playerPosition: to,
-                    win: this.checkBoard(to)
-                });
-
-                // perform any events on tile
-                this.performTileEvents(to, tileset);
+                this.setState({ playerPosition: to });
+                // perform any events on tile, with callback for flip events
+                this.performTileEvents(to, tileset, this.enableMove);
             }
         },
-        checkBoard: function(playerPosition) {
-            var goalPosition = this.state.currentLevel.goalPosition;
-            // both or neither of flipX and flipY
-            if (!this.state.flipped &&
-                playerPosition.x === goalPosition.x &&
-                playerPosition.y === goalPosition.y) {
-                return true;
+        checkWinCondition: function() {
+            if (!this.state.flipX && this.state.hasKey) {
+                this.setState({
+                    win: true,
+                    menuStatus: 'You did it!'
+                });
+            } else if (this.state.flipX) {
+                this.setState({ menuStatus: 'Your car is upside down!' });
+            } else {
+                this.setState({ menuStatus: 'Wait...where is your key?' });
             }
-            return false;
         },
         getGridTranslate: function(x, y) {
             var tileWidth = document.getElementById('player').offsetWidth;
@@ -233,7 +222,6 @@
             var gridTranslate = this.getGridTranslate(this.state.currentLevel.startPosition.x, this.state.currentLevel.startPosition.y);
             var newBoardDimensions = this.getDimensions(levels[level].height, levels[level].width);
 
-
             // clear style attributes
             player.style.transform = gridTranslate;
             player.style.webkitTransform = gridTranslate;
@@ -247,9 +235,12 @@
                     y: levels[level].startPosition.y
                 },
                 boardDimensions: newBoardDimensions,
+                menuStatus: 'Get to your car.',
                 flipX: false,
                 flipY: false,
                 flipped: false,
+                unfold: false,
+                hasKey: false,
                 win: false
             });
         },
@@ -296,7 +287,9 @@
                 flipY: false,
                 flipped: false,
                 unfold: false,
-                win: false
+                hasKey: false,
+                win: false,
+                menuStatus: 'Get to your car.'
             };
         },
         render: function() {
@@ -308,25 +301,37 @@
 
             var frontTiles = this.state.currentLevel.front.reduce(concatenate),
                 backTiles = this.state.currentLevel.back.reduce(concatenate);
-            var menuStatus = this.state.win ? 'You win!' : 'Get to the flower.';
-            var unfoldClass = this.state.unfold ? 'unfold' : '';
-            unfoldClass += this.state.flipX ? ' invert-x' : '';
+            var wrapperClass = this.state.unfold ? 'unfold' : '';
+            wrapperClass += this.state.flipX ? ' invert-x' : '';
+            wrapperClass += this.state.hasKey ? ' hasKey' : '';
             return (
                 React.DOM.div(null, 
-                    React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: unfoldClass}, 
+                    Level({level: this.state.currentLevel.level}), 
+                    React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClass}, 
                         React.DOM.div({id: "game-board", className: this.state.flipped ? 'flipped' : ''}, 
                             BoardFace({id: "game-board-front", tileset: frontTiles}), 
                             BoardFace({id: "game-board-back", tileset: backTiles})
                         ), 
                         Player({flipClass: this.state.flipped ? ' flip' : ''})
                     ), 
-                    Menu({winClass: this.state.win ? 'win' : '', 
-                        level: this.state.currentLevel.level, 
+                    Menu({level: this.state.currentLevel.level, 
                         changeLevel: this.changeLevel, 
-                        status: menuStatus})
+                        status: this.state.menuStatus})
                 )
             );
             /* jshint ignore:end */
+        }
+    });
+
+    // COMPONENT: Level Indicator
+
+    var Level = React.createClass({displayName: 'Level',
+        render: function() {
+            return (
+                /* jshint ignore:start */
+                React.DOM.h3({id: "subtitle"}, "Level ", this.props.level)
+                /* jshint ignore:end */
+            );
         }
     });
 
@@ -361,12 +366,14 @@
                 return tileClass;
             }
 
+            // http://fortawesome.github.io/Font-Awesome/icons/
             var fullClass = {
-                'E': ' exit',
-                'x': ' flip-x',
-                'y': ' flip-y',
+                'E': ' fa fa-car',
+                'x': ' fa fa-arrows-v',
+                'y': ' fa fa-arrows-h',
                 'b': ' wall-bottom',
-                'r': ' wall-right'
+                'r': ' wall-right',
+                'k': ' fa fa-key'
             };
             tileText = tileText.split('');
 
@@ -391,7 +398,7 @@
         render: function() {
             return (
                 /* jshint ignore:start */
-                React.DOM.div({className: 'tile' + this.props.flipClass, id: "player"})
+                React.DOM.div({className: 'tile fa fa-female' + this.props.flipClass, id: "player"})
                 /* jshint ignore:end */
             );
         }
@@ -413,15 +420,13 @@
         },
         render: function() {
             /* jshint ignore:start */
-            var winClass = 'button ' + this.props.winClass;
             return (
                 React.DOM.div({id: "menu"}, 
-                    React.DOM.h3({id: "subtitle"}, "Level ", this.props.level), 
-                    React.DOM.p(null, this.props.status), 
-                    React.DOM.p(null, 
-                        React.DOM.a({className: "button", onClick: this.prevLevelClickHandler}, "Previous Level"), 
-                        React.DOM.a({className: "button", onClick: this.restartClickHandler}, "Restart"), 
-                        React.DOM.a({className: winClass, onClick: this.nextLevelClickHandler}, "Next Level")
+                    React.DOM.p({className: "instruction"}, this.props.status), 
+                    React.DOM.nav({className: "navigation"}, 
+                        React.DOM.a({className: "nav-item fa fa-chevron-left", title: "Previous Level", onClick: this.prevLevelClickHandler}), 
+                        React.DOM.a({className: "nav-item fa fa-refresh", title: "Restart Level", onClick: this.restartClickHandler}), 
+                        React.DOM.a({className: "nav-item fa fa-chevron-right", title: "Next Level", onClick: this.nextLevelClickHandler})
                     )
                 )
             );
