@@ -1,14 +1,21 @@
 body {
-  background: #527d4a;
-  color: #deeadc; }
+  background: #507b5e;
+  color: #e0eae3; }
+
+#title {
+  -webkit-transition: -webkit-transform 0.5s;
+          transition: transform 0.5s; }
+  #title.spin {
+    -webkit-transform: rotateY(360deg) translateZ(1px);
+            transform: rotateY(360deg) translateZ(1px); }
 
 .title-flip {
   display: inline-block;
   -webkit-transform: rotateY(180deg);
           transform: rotateY(180deg);
-  color: #283d24; }
+  color: #283d2f; }
 
-.container {
+#container {
   position: relative;
   margin: 80px auto;
   max-width: 500px;
@@ -18,8 +25,8 @@ body {
 #game-board-wrapper {
   position: relative;
   display: inline-block;
-  -webkit-transition: -webkit-transform 0.4s;
-          transition: transform 0.4s;
+  -webkit-transition: -webkit-transform 0.5s;
+          transition: transform 0.5s;
   cursor: default;
   -webkit-perspective: 1200px;
           perspective: 1200px; }
@@ -31,8 +38,8 @@ body {
   position: relative;
   height: 100%;
   width: 100%;
-  -webkit-transition: -webkit-transform 0.4s;
-          transition: transform 0.4s;
+  -webkit-transition: -webkit-transform 0.5s;
+          transition: transform 0.5s;
   -webkit-perspective: 1200px;
           perspective: 1200px; }
 
@@ -44,8 +51,8 @@ body {
   left: 0;
   right: 0;
   padding: 1px;
-  -webkit-transition: -webkit-filter 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
-          transition: filter 0.4s, background 0.4s, border-color 0.4s, color 0.4s;
+  -webkit-transition: -webkit-filter 0.5s, background 0.5s, border-color 0.5s, color 0.5s;
+          transition: filter 0.5s, background 0.5s, border-color 0.5s, color 0.5s;
   overflow: hidden; }
   .unfold #game-board-front, .unfold .flipped #game-board-front, .unfold
   #game-board-back, .unfold .flipped
@@ -55,14 +62,14 @@ body {
     opacity: 1; }
 
 #game-board-front {
-  background: #deeadc;
-  color: #283d24;
-  border: 2px solid #283d24;
+  background: #e0eae3;
+  color: #283d2f;
+  border: 2px solid #283d2f;
   opacity: 0.91;
   -webkit-filter: none;
           filter: none;
-  -webkit-transition: -webkit-transform 0.4s, opacity 0.4s;
-          transition: transform 0.4s, opacity 0.4s;
+  -webkit-transition: -webkit-transform 0.5s, opacity 0.5s;
+          transition: transform 0.5s, opacity 0.5s;
   -webkit-transform-origin: left;
       -ms-transform-origin: left;
           transform-origin: left; }
@@ -83,13 +90,13 @@ body {
 
 #game-board-back {
   z-index: -1;
-  background: #283d24;
-  color: #deeadc;
-  border: 2px solid #deeadc;
+  background: #283d2f;
+  color: #e0eae3;
+  border: 2px solid #e0eae3;
   -webkit-filter: blur(1px);
           filter: blur(1px);
-  -webkit-transition: -webkit-transform 0.4s;
-          transition: transform 0.4s;
+  -webkit-transition: -webkit-transform 0.5s;
+          transition: transform 0.5s;
   -webkit-transform-origin: right;
       -ms-transform-origin: right;
           transform-origin: right; }
@@ -125,7 +132,8 @@ body {
      -moz-box-sizing: border-box;
           box-sizing: border-box;
   margin: -1px;
-  text-align: center; }
+  text-align: center;
+  -webkit-font-smoothing: antialiased; }
 
 #player {
   z-index: 2;
@@ -135,29 +143,52 @@ body {
   margin: 2px 0 0 2px;
   width: 50px;
   height: 50px;
-  -webkit-transition: -webkit-transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
-          transition: transform 0.1s, color 0.4s, top 0.4s, left 0.4s;
-  color: #283d24;
+  -webkit-transition: -webkit-transform 0.1s, color 0.5s;
+          transition: transform 0.1s, color 0.5s;
+  color: #283d2f;
   font-size: 21px; }
   #player.flip {
-    color: #deeadc; }
+    color: #e0eae3; }
+    #player.flip:before {
+      -webkit-animation: jump 0.5s;
+              animation: jump 0.5s; }
+  #player.flip-back:before {
+    -webkit-animation: jump-again 0.5s;
+            animation: jump-again 0.5s; }
 
+@-webkit-keyframes jump {
+  50% {
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5); } }
+
+@keyframes jump {
+  50% {
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5); } }
+@-webkit-keyframes jump-again {
+  50% {
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5); } }
+@keyframes jump-again {
+  50% {
+    -webkit-transform: scale(1.5);
+            transform: scale(1.5); } }
 /* =========================
    Tile Classes
    ========================= */
 #game-board-front .wall-right {
-  border-right: 2px solid #283d24; }
+  border-right: 2px solid #283d2f; }
 #game-board-front .wall-bottom {
-  border-bottom: 2px solid #283d24; }
+  border-bottom: 2px solid #283d2f; }
 
 #game-board-back .wall-right {
-  border-right: 2px solid #deeadc; }
+  border-right: 2px solid #e0eae3; }
 #game-board-back .wall-bottom {
-  border-bottom: 2px solid #deeadc; }
+  border-bottom: 2px solid #e0eae3; }
 
 .fa-key {
-  -webkit-transition: color 0.4s;
-          transition: color 0.4s; }
+  -webkit-transition: color 0.5s;
+          transition: color 0.5s; }
   .hasKey .fa-key {
     color: transparent; }
 
@@ -170,8 +201,8 @@ body {
 
 .nav-item {
   padding: 8px;
-  color: #deeadc;
-  background: #527d4a;
+  color: #e0eae3;
+  background: #507b5e;
   -webkit-transform: none;
       -ms-transform: none;
           transform: none; }

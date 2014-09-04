@@ -9,18 +9,40 @@
 
     var levels = [
     {
-        level: 1,
+        front: [['','r','','E'],
+                ['','yr','b',''],
+                ['','','r',''],
+                ['x','','r','x']],
+        back:  [['','r','',''],
+                ['yb','br','',''],
+                ['','','','k'],
+                ['','x','y','']],
+        startPosition: { x: 0, y: 0 }
+    },
+    {
+        front: [['r','E'],
+                ['x','x']],
+        back:  [['ybr',''],
+                ['x','k']],
+        startPosition: { x: 0, y: 0 }
+    },
+    {
         front: [['r','bk','xb'],
                 ['r','','b'],
                 ['yr','x','E']],
         back:  [['','b','xb'],
                 ['b','yrb','x'],
                 ['','x','']],
-        height: 3,
-        width: 3,
         startPosition: { x: 0, y: 0 }
     }
     ];
+
+    // add height and width to each level
+    levels.forEach(function(level, i) {
+        level.level = i + 1;
+        level.height = level.front.length;
+        level.width = level.front[0].length;
+    });
 
     // COMPONENT: Game Board
 
@@ -34,7 +56,7 @@
         },
         rotate3d: function(axis) {
             var gameBoard = document.getElementById('game-board');
-            var rotateX, rotateY;
+            var rotateX, rotateY, rotateStyle;
             
             if (axis === 'x') {
                 rotateX = !this.state.flipX ? '180deg' : 0;
@@ -44,8 +66,12 @@
                 rotateY = !this.state.flipY ? '180deg' : 0;
             }
 
-            gameBoard.style.transform = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
-            gameBoard.style.webkitTransform = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
+            // state before flip
+            // var translateZ = this.state.flipped ? '-10px' : '10px';
+            rotateStyle = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
+
+            gameBoard.style.transform = rotateStyle;
+            gameBoard.style.webkitTransform = rotateStyle;
         },
         flip: function(axis, callback) {
             var playerPosition = this.state.playerPosition;
@@ -81,7 +107,39 @@
                 if (callback) { callback(); }
                 // check for events again
                 this.performTileEvents(playerPosition, null, callback);
-            }.bind(this), 400);
+            }.bind(this), 500);
+        },
+        enableMove: function() {
+            this.setState({
+                moveDisabled: false
+            });
+        },
+        move: function(direction) {
+            var tileset = this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front;
+            var from = this.state.playerPosition;
+            // invertX/Y used to invert direction when board is flipped
+            var invertY = this.state.flipX ? -1 : 1,
+                invertX = this.state.flipY ? -1 : 1;
+            var to = {
+                x: from.x + (direction.x * invertX),
+                y: from.y + (direction.y * invertY)
+            };
+
+            if (this.state.moveDisabled) {
+                return;
+            }
+
+            if (this.isValidMove(from, to, direction, tileset)) {
+
+                this.setState({
+                    moveDisabled: true
+                });
+
+                // Update Game State
+                this.setState({ playerPosition: to });
+                // perform any events on tile, with callback
+                this.performTileEvents(to, tileset, this.enableMove);
+            }
         },
         isValidMove: function(from, to, direction, tileset) {
             var wallExists;
@@ -148,46 +206,6 @@
                 callback();
             }
         },
-        enableMove: function() {
-            this.setState({
-                moveDisabled: false
-            });
-        },
-        move: function(direction) {
-            var tileset = this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front;
-            var from = this.state.playerPosition;
-            // invertX/Y used to invert direction when board is flipped
-            var invertY = this.state.flipX ? -1 : 1,
-                invertX = this.state.flipY ? -1 : 1;
-            var to = {
-                x: from.x + (direction.x * invertX),
-                y: from.y + (direction.y * invertY)
-            };
-
-            if (this.state.moveDisabled) {
-                return;
-            }
-
-            if (this.isValidMove(from, to, direction, tileset)) {
-
-                var player = document.getElementById('player');
-                var translateY = this.state.flipX ? (this.state.currentLevel.height - to.y - 1) : to.y,
-                    translateX = this.state.flipY ? (this.state.currentLevel.width - to.x - 1) : to.x;
-                var gridTranslate = this.getGridTranslate(translateX, translateY);
-
-                this.setState({
-                    moveDisabled: true
-                });
-
-                player.style.transform = gridTranslate;
-                player.style.webkitTransform = gridTranslate;
-
-                // Update Game State
-                this.setState({ playerPosition: to });
-                // perform any events on tile, with callback for flip events
-                this.performTileEvents(to, tileset, this.enableMove);
-            }
-        },
         checkWinCondition: function() {
             if (!this.state.flipX && this.state.hasKey) {
                 this.setState({
@@ -200,12 +218,6 @@
                 this.setState({ menuStatus: 'Wait...where is your key?' });
             }
         },
-        getGridTranslate: function(x, y) {
-            var tileWidth = document.getElementById('player').offsetWidth;
-            return 'translate3d(' +
-                (x * tileWidth) + 'px,' +
-                (y * tileWidth) + 'px,0)';
-        },
         getDimensions: function(height, width) {
             var tileWidth = document.getElementById('player').offsetWidth;
             return {
@@ -217,14 +229,10 @@
 
             if (!levels[level]) { return; }
 
-            var gameBoard = document.getElementById('game-board'),
-                player = document.getElementById('player');
-            var gridTranslate = this.getGridTranslate(this.state.currentLevel.startPosition.x, this.state.currentLevel.startPosition.y);
+            var gameBoard = document.getElementById('game-board');
             var newBoardDimensions = this.getDimensions(levels[level].height, levels[level].width);
 
             // clear style attributes
-            player.style.transform = gridTranslate;
-            player.style.webkitTransform = gridTranslate;
             gameBoard.style.transform = '';
             gameBoard.style.webkitTransform = '';
 
@@ -292,27 +300,31 @@
                 menuStatus: 'Get to your car.'
             };
         },
+        concatenateBoard: function(a, b) {
+            // flatten tilesets into single array
+            return a.concat(b);
+        },
         render: function() {
             /* jshint ignore:start */
-            // flatten tilesets into single array
-            function concatenate(a, b) {
-                return a.concat(b);
-            };
-
-            var frontTiles = this.state.currentLevel.front.reduce(concatenate),
-                backTiles = this.state.currentLevel.back.reduce(concatenate);
+            var playerPosition = this.state.playerPosition;
+            var frontTiles = this.state.currentLevel.front.reduce(this.concatenateBoard),
+                backTiles = this.state.currentLevel.back.reduce(this.concatenateBoard);
             var wrapperClass = this.state.unfold ? 'unfold' : '';
             wrapperClass += this.state.flipX ? ' invert-x' : '';
             wrapperClass += this.state.hasKey ? ' hasKey' : '';
             return (
-                React.DOM.div(null, 
-                    Level({level: this.state.currentLevel.level}), 
+                React.DOM.div({id: "game-container"}, 
+                    HeaderGroup({level: this.state.currentLevel.level, titleClass: this.state.win ? 'spin' : ''}), 
                     React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClass}, 
                         React.DOM.div({id: "game-board", className: this.state.flipped ? 'flipped' : ''}, 
                             BoardFace({id: "game-board-front", tileset: frontTiles}), 
                             BoardFace({id: "game-board-back", tileset: backTiles})
                         ), 
-                        Player({flipClass: this.state.flipped ? ' flip' : ''})
+                        Player({flipClass: this.state.flipped ? ' flip' : ' flip-back', 
+                            position: {
+                                x: this.state.flipY ? (this.state.currentLevel.width - playerPosition.x - 1) : playerPosition.x,
+                                y: this.state.flipX ? (this.state.currentLevel.height - playerPosition.y - 1) : playerPosition.y
+                            }})
                     ), 
                     Menu({level: this.state.currentLevel.level, 
                         changeLevel: this.changeLevel, 
@@ -323,13 +335,16 @@
         }
     });
 
-    // COMPONENT: Level Indicator
+    // COMPONENT: Header Group (title and level indicator)
 
-    var Level = React.createClass({displayName: 'Level',
+    var HeaderGroup = React.createClass({displayName: 'HeaderGroup',
         render: function() {
             return (
                 /* jshint ignore:start */
-                React.DOM.h3({id: "subtitle"}, "Level ", this.props.level)
+                React.DOM.div(null, 
+                    React.DOM.h1({id: "title", className: this.props.titleClass}, React.DOM.span({className: "title-flip"}, "Flip"), " Flip"), 
+                    React.DOM.h3({id: "subtitle"}, "Level ", this.props.level)
+                )
                 /* jshint ignore:end */
             );
         }
@@ -395,12 +410,25 @@
     // COMPONENT: Player Tile
 
     var Player = React.createClass({displayName: 'Player',
+        getPosition: function() {
+            var position = this.props.position;
+            var tileWidth = 50;
+            var gridTranslate = 'translate3d(' +
+                (position.x * tileWidth) + 'px,' +
+                (position.y * tileWidth) + 'px,0)';
+
+            return {
+                transform: gridTranslate,
+                webkitTransform: gridTranslate
+            };
+        },
         render: function() {
+            /* jshint ignore:start */
+            var playerStyle = this.getPosition();
             return (
-                /* jshint ignore:start */
-                React.DOM.div({className: 'tile fa fa-female' + this.props.flipClass, id: "player"})
-                /* jshint ignore:end */
+                React.DOM.div({className: 'tile fa fa-female' + this.props.flipClass, id: "player", style: playerStyle})
             );
+            /* jshint ignore:end */
         }
     });
 
@@ -436,7 +464,7 @@
 
     React.renderComponent(
         Flip(null),
-        document.getElementById('game-container')
+        document.getElementById('container')
     );
 
 }(React));
