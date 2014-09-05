@@ -9,35 +9,41 @@
 
     var levels = [
     {
-        front: [['','r','','E'],
-                ['','yr','b',''],
+        front: [['b','b','b','b','x'],
+                ['','b','b','r',''],
+                ['r','','yrb','r',''],
+                ['r','b','b','br',''],
+                ['','','','','']],
+        back:  [['','','','',''],
+                ['','','b','',''],
+                ['','r','Ebr','',''],
+                ['','','b','b','b'],
+                ['','','f','','']],
+        startPosition: { x: 0, y: 0 }
+    },
+    {
+        front: [['','yr','','E'],
+                ['','r','b',''],
                 ['','','r',''],
                 ['x','','r','x']],
         back:  [['','r','',''],
                 ['yb','br','',''],
-                ['','','','k'],
-                ['','x','y','']],
+                ['x','','','k'],
+                ['','','y','']],
         startPosition: { x: 0, y: 0 }
     },
     {
-        front: [['r','E'],
-                ['x','x']],
-        back:  [['ybr',''],
-                ['x','k']],
-        startPosition: { x: 0, y: 0 }
-    },
-    {
-        front: [['r','bk','xb'],
+        front: [['b','bk','xb'],
                 ['r','','b'],
                 ['yr','x','E']],
         back:  [['','b','xb'],
                 ['b','yrb','x'],
-                ['','x','']],
-        startPosition: { x: 0, y: 0 }
+                ['x','','']],
+        startPosition: { x: 0, y: 1 }
     }
     ];
 
-    // add height and width to each level
+    // add level number, height/width to each level object
     levels.forEach(function(level, i) {
         level.level = i + 1;
         level.height = level.front.length;
@@ -53,25 +59,6 @@
             this.setState({
                 unfold: !unfold
             });
-        },
-        rotate3d: function(axis) {
-            var gameBoard = document.getElementById('game-board');
-            var rotateX, rotateY, rotateStyle;
-            
-            if (axis === 'x') {
-                rotateX = !this.state.flipX ? '180deg' : 0;
-                rotateY = this.state.flipY ? '180deg' : 0;
-            } else {
-                rotateX = this.state.flipX ? '180deg' : 0;
-                rotateY = !this.state.flipY ? '180deg' : 0;
-            }
-
-            // state before flip
-            // var translateZ = this.state.flipped ? '-10px' : '10px';
-            rotateStyle = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
-
-            gameBoard.style.transform = rotateStyle;
-            gameBoard.style.webkitTransform = rotateStyle;
         },
         flip: function(axis, callback) {
             var playerPosition = this.state.playerPosition;
@@ -92,9 +79,6 @@
             // update player position and css
             playerPosition[oppositeAxis] = (boardBoundary - playerPosition[oppositeAxis] - 1);
 
-            // calculate rotate3d css for #game-board
-            this.rotate3d(axis);
-
             // Update Game State
             this.setState({
                 playerPosition: playerPosition,
@@ -109,11 +93,6 @@
                 this.performTileEvents(playerPosition, null, callback);
             }.bind(this), 500);
         },
-        enableMove: function() {
-            this.setState({
-                moveDisabled: false
-            });
-        },
         move: function(direction) {
             var tileset = this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front;
             var from = this.state.playerPosition;
@@ -125,20 +104,26 @@
                 y: from.y + (direction.y * invertY)
             };
 
-            if (this.state.moveDisabled) {
+            function reEnableMove() {
+                this.setState({
+                    moveEnabled: true
+                });
+            }
+
+            if (!this.state.moveEnabled) {
                 return;
             }
 
             if (this.isValidMove(from, to, direction, tileset)) {
 
                 this.setState({
-                    moveDisabled: true
+                    moveEnabled: false
                 });
 
                 // Update Game State
                 this.setState({ playerPosition: to });
                 // perform any events on tile, with callback
-                this.performTileEvents(to, tileset, this.enableMove);
+                this.performTileEvents(to, tileset, reEnableMove.bind(this));
             }
         },
         isValidMove: function(from, to, direction, tileset) {
@@ -184,22 +169,30 @@
         performTileEvents: function(tile, tileset, callback) {
 
             tileset = tileset || (this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front);
-
             var tileCharacters = tileset[tile.y][tile.x].split('');
+
+            function tileContains(letter) {
+                return tileCharacters.indexOf(letter) !== -1;
+            }
 
             this.setState({ menuStatus: 'Get to your car.' });
 
-            if (tileCharacters.indexOf('x') !== -1) {
+            if (tileContains('x')) {
                 this.flip('x', callback);
-            } else if (tileCharacters.indexOf('y') !== -1) {
+            } else if (tileContains('y')) {
                 this.flip('y', callback);
-            } else if (tileCharacters.indexOf('k') !== -1 && !this.state.hasKey) {
+            } else if (tileContains('k') && !this.state.hasKey) {
                 this.setState({
                     hasKey: true,
                     menuStatus: 'Got the key!'
                 });
                 callback();
-            } else if (tileCharacters.indexOf('E') !== -1) {
+            } else if (tileContains('f')) {
+                // no callback
+                this.setState({
+                    menuStatus: 'Oops, burned alive!'
+                });
+            } else if (tileContains('E')) {
                 this.checkWinCondition();
                 callback();
             } else {
@@ -229,12 +222,7 @@
 
             if (!levels[level]) { return; }
 
-            var gameBoard = document.getElementById('game-board');
             var newBoardDimensions = this.getDimensions(levels[level].height, levels[level].width);
-
-            // clear style attributes
-            gameBoard.style.transform = '';
-            gameBoard.style.webkitTransform = '';
 
             this.setState({
                 currentLevel: levels[level],
@@ -244,6 +232,7 @@
                 },
                 boardDimensions: newBoardDimensions,
                 menuStatus: 'Get to your car.',
+                moveEnabled: true,
                 flipX: false,
                 flipY: false,
                 flipped: false,
@@ -291,13 +280,15 @@
                     y: levels[0].startPosition.y
                 },
                 boardDimensions: { width: 0, height: 0 },
+                moveEnabled: true,
                 flipX: false,
                 flipY: false,
                 flipped: false,
                 unfold: false,
                 hasKey: false,
                 win: false,
-                menuStatus: 'Get to your car.'
+                menuStatus: 'Get to your car.',
+                totalLevels: levels.length
             };
         },
         concatenateBoard: function(a, b) {
@@ -307,28 +298,35 @@
         render: function() {
             /* jshint ignore:start */
             var playerPosition = this.state.playerPosition;
-            var frontTiles = this.state.currentLevel.front.reduce(this.concatenateBoard),
-                backTiles = this.state.currentLevel.back.reduce(this.concatenateBoard);
             var wrapperClass = this.state.unfold ? 'unfold' : '';
             wrapperClass += this.state.flipX ? ' invert-x' : '';
             wrapperClass += this.state.hasKey ? ' hasKey' : '';
             return (
                 <div id="game-container">
-                    <HeaderGroup level={this.state.currentLevel.level} titleClass={this.state.win ? 'spin' : ''} />
-                    <div id="game-board-wrapper" style={this.state.boardDimensions} className={wrapperClass} >
-                        <div id="game-board" className={this.state.flipped ? 'flipped' : ''}>
-                            <BoardFace id="game-board-front" tileset={frontTiles} />
-                            <BoardFace id="game-board-back" tileset={backTiles} />
-                        </div>
-                        <Player flipClass={this.state.flipped ? ' flip' : ' flip-back'}
+                    <HeaderMenu
+                        level={this.state.currentLevel.level}
+                        totalLevels={this.state.totalLevels}
+                        titleClass={this.state.win ? 'spin' : ''}
+                        changeLevel={this.changeLevel} />
+                    <div id="game-board-wrapper" style={this.state.boardDimensions} className={wrapperClass}>
+                        <GameBoard
+                            flipState={{
+                                flipX: this.state.flipX,
+                                flipY: this.state.flipY,
+                                flipped: this.state.flipped
+                            }}
+                            tileSets={{
+                                front: this.state.currentLevel.front.reduce(this.concatenateBoard),
+                                back: this.state.currentLevel.back.reduce(this.concatenateBoard)
+                            }} />
+                        <Player
+                            flipClass={this.state.flipped ? ' flip' : ' flip-back'}
                             position={{
                                 x: this.state.flipY ? (this.state.currentLevel.width - playerPosition.x - 1) : playerPosition.x,
                                 y: this.state.flipX ? (this.state.currentLevel.height - playerPosition.y - 1) : playerPosition.y
                             }} /> 
                     </div>
-                    <Menu level={this.state.currentLevel.level}
-                        changeLevel={this.changeLevel}
-                        status={this.state.menuStatus} />
+                    <Hint status={this.state.menuStatus} />
                 </div>
             );
             /* jshint ignore:end */
@@ -337,16 +335,59 @@
 
     // COMPONENT: Header Group (title and level indicator)
 
-    var HeaderGroup = React.createClass({
+    var HeaderMenu = React.createClass({
+        restartClickHandler: function() {
+            this.props.changeLevel(this.props.level-1);
+        },
+        nextLevelClickHandler: function() {
+            this.props.changeLevel(this.props.level);
+        },
+        prevLevelClickHandler: function() {
+            if (this.props.level > 1) {
+                this.props.changeLevel(this.props.level-2);
+            }
+        },
         render: function() {
             return (
                 /* jshint ignore:start */
-                <div>
+                <div className="header">
                     <h1 id="title" className={this.props.titleClass}><span className="title-flip">Flip</span> Flip</h1>
-                    <h3 id="subtitle">Level {this.props.level}</h3>
+                    <h3 id="subtitle">Level {this.props.level}/{this.props.totalLevels}</h3>
+                    <nav className="navigation">
+                        <a className="nav-item icon-left" title="Previous Level" onClick={this.prevLevelClickHandler}></a>
+                        <a className="nav-item icon-refresh" title="Restart Level" onClick={this.restartClickHandler}></a>
+                        <a className="nav-item icon-right" title="Next Level" onClick={this.nextLevelClickHandler}></a>
+                    </nav>
                 </div>
                 /* jshint ignore:end */
             );
+        }
+    });
+
+    var GameBoard = React.createClass({
+        getGameBoardStyle: function() {
+            var flipX = this.props.flipState.flipX,
+                flipY = this.props.flipState.flipY;
+            var rotateX = flipX ? '180deg' : 0,
+                rotateY = flipY ? '180deg' : 0;
+
+            var rotateStyle = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
+
+            return {
+                transform: rotateStyle,
+                webkitTransform: rotateStyle
+            };
+        },
+        render: function() {
+            /* jshint ignore:start */
+            var gameBoardStyle = this.getGameBoardStyle();
+            return (
+                <div id="game-board" className={this.props.flipState.flipped ? 'flipped' : ''} style={gameBoardStyle}>
+                    <BoardFace id="game-board-front" tileset={this.props.tileSets.front} />
+                    <BoardFace id="game-board-back" tileset={this.props.tileSets.back} />
+                </div>
+            );
+            /* jshint ignore:end */
         }
     });
 
@@ -383,12 +424,13 @@
 
             // http://fortawesome.github.io/Font-Awesome/icons/
             var fullClass = {
-                'E': ' fa fa-car',
-                'x': ' fa fa-arrows-v',
-                'y': ' fa fa-arrows-h',
+                'E': ' icon-car',
+                'x': ' icon-flip-x',
+                'y': ' icon-flip-y',
                 'b': ' wall-bottom',
                 'r': ' wall-right',
-                'k': ' fa fa-key'
+                'k': ' icon-key',
+                'f': ' icon-fire'
             };
             tileText = tileText.split('');
 
@@ -426,7 +468,7 @@
             /* jshint ignore:start */
             var playerStyle = this.getPosition();
             return (
-                <div className={'tile fa fa-female' + this.props.flipClass} id="player" style={playerStyle}></div>
+                <div className={'tile icon-female' + this.props.flipClass} id="player" style={playerStyle}></div>
             );
             /* jshint ignore:end */
         }
@@ -434,28 +476,12 @@
 
     // COMPONENT: Menu
 
-    var Menu = React.createClass({
-        restartClickHandler: function() {
-            this.props.changeLevel(this.props.level-1);
-        },
-        nextLevelClickHandler: function() {
-            this.props.changeLevel(this.props.level);
-        },
-        prevLevelClickHandler: function() {
-            if (this.props.level > 1) {
-                this.props.changeLevel(this.props.level-2);
-            }
-        },
+    var Hint = React.createClass({
         render: function() {
             /* jshint ignore:start */
             return (
                 <div id="menu">
                     <p className="instruction">{this.props.status}</p>
-                    <nav className="navigation">
-                        <a className="nav-item fa fa-chevron-left" title="Previous Level" onClick={this.prevLevelClickHandler}></a>
-                        <a className="nav-item fa fa-refresh" title="Restart Level" onClick={this.restartClickHandler}></a>
-                        <a className="nav-item fa fa-chevron-right" title="Next Level" onClick={this.nextLevelClickHandler}></a>
-                    </nav>
                 </div>
             );
             /* jshint ignore:end */
