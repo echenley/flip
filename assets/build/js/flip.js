@@ -138,9 +138,8 @@
                 else if (vector.y ===  1) { return 'b'; }
             }
 
-            function hasWallClass(tile, vector) {
+            function hasWallClass(tile, directionLetter) {
                 var tileCharacters = tileset[tile.y][tile.x].split('');
-                var directionLetter = directionLetterOf(vector);
                 return tileCharacters.indexOf(directionLetter) !== -1;
             }
 
@@ -152,13 +151,10 @@
 
             // right or down
             if (direction.x === 1 || direction.y === 1) {
-                wallExists = hasWallClass(from, direction);
+                wallExists = hasWallClass(from, directionLetterOf(direction));
             } else {
                 // left or up
-                wallExists = hasWallClass(to, {
-                    x: -direction.x,
-                    y: -direction.y
-                });
+                wallExists = hasWallClass(to, directionLetterOf({ x: -direction.x, y: -direction.y }));
             }
 
             if (wallExists) {
@@ -320,7 +316,7 @@
                                 back: this.state.currentLevel.back.reduce(this.concatenateBoard)
                             }}), 
                         Player({
-                            flipClass: this.state.flipped ? ' flip' : ' flip-back', 
+                            flipClass: this.state.flipped ? ' flip' : ' unflip', 
                             position: {
                                 x: this.state.flipY ? (this.state.currentLevel.width - playerPosition.x - 1) : playerPosition.x,
                                 y: this.state.flipX ? (this.state.currentLevel.height - playerPosition.y - 1) : playerPosition.y
@@ -457,7 +453,7 @@
             var tileWidth = 50;
             var gridTranslate = 'translate3d(' +
                 (position.x * tileWidth) + 'px,' +
-                (position.y * tileWidth) + 'px,0)';
+                (position.y * tileWidth) + 'px, 2px)';
 
             return {
                 transform: gridTranslate,
