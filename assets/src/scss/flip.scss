@@ -7,7 +7,7 @@
 $tile-size:      50px;
 $character-size: 16px;
 
-$dark-color: #283d2f;
+$dark-color: #343d34;
 $background-color: lighten($dark-color, 20%); // #4a527d
 $light-color: lighten($dark-color, 70%);      // #dcdeea
 
@@ -16,8 +16,13 @@ body {
     color: $light-color;
 }
 
+.header {
+    perspective: 400px;
+}
+
 #title {
     transition: transform 0.5s;
+    transform-origin: center center;
     &.spin {
         transform: rotateY(360deg) translateZ(1px);
     }
@@ -43,7 +48,7 @@ body {
     display: inline-block;
     transition: transform 0.5s;
     cursor: default;
-    perspective: 1200px;
+    perspective: 600px;
     &.unfold {
         transform: translate3d(-50%, 0, 0);
     }
@@ -55,7 +60,7 @@ body {
     height: 100%;
     width: 100%;
     transition: transform 0.5s;
-    perspective: 1200px;
+    perspective: 600px;
 }
 
 #game-board-front,
@@ -132,12 +137,14 @@ body {
     float: left;
     width: $tile-size + 2px;
     height: $tile-size + 2px;
-    line-height: $tile-size;
     font-size: $character-size;
     box-sizing: border-box;
     margin: -1px;
     text-align: center;
     -webkit-font-smoothing: antialiased;
+    &:before {
+        line-height: $tile-size;
+    }
 }
 
 #player {
@@ -153,22 +160,18 @@ body {
     font-size: $character-size + 5px;
     &.flip {
         color: $light-color;
-        &:before {
-            animation: jump 0.5s;
-        }
+        animation: jump 0.5s;
     }
     &.flip-back {
-        &:before {
-            animation: jump-again 0.5s;
-        }
+        animation: jump-again 0.5s;
     }
 }
 
 @keyframes jump {
-    50% { transform: scale(1.5); }
+    50%  { font-size: 2 * ($character-size + 5px); }
 }
 @keyframes jump-again {
-    50% { transform: scale(1.5); }
+    50% { font-size: 2 * ($character-size + 5px); }
 }
 
 
@@ -194,10 +197,17 @@ body {
     }
 }
 
-.fa-key {
+.icon-key {
     transition: color 0.5s;
     .hasKey & {
         color: transparent;
+    }
+}
+
+.icon-fire {
+    transition: transform 0.5s;
+    .flipped & {
+        transform: rotateX(-180deg);
     }
 }
 
@@ -209,13 +219,13 @@ body {
 .navigation {
     position: relative;
     text-align: center;
+    margin: 20px 0;
 }
 
 .nav-item {
     padding: 8px;
     color: $light-color;
     background: $background-color;
-    transform: none;
     &:hover {
         cursor: pointer;
     }

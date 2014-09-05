@@ -1,10 +1,17 @@
 body {
-  background: #507b5e;
-  color: #e0eae3; }
+  background: #637463;
+  color: #e9ede9; }
+
+.header {
+  -webkit-perspective: 400px;
+          perspective: 400px; }
 
 #title {
   -webkit-transition: -webkit-transform 0.5s;
-          transition: transform 0.5s; }
+          transition: transform 0.5s;
+  -webkit-transform-origin: center center;
+      -ms-transform-origin: center center;
+          transform-origin: center center; }
   #title.spin {
     -webkit-transform: rotateY(360deg) translateZ(1px);
             transform: rotateY(360deg) translateZ(1px); }
@@ -13,7 +20,7 @@ body {
   display: inline-block;
   -webkit-transform: rotateY(180deg);
           transform: rotateY(180deg);
-  color: #283d2f; }
+  color: #343d34; }
 
 #container {
   position: relative;
@@ -28,8 +35,8 @@ body {
   -webkit-transition: -webkit-transform 0.5s;
           transition: transform 0.5s;
   cursor: default;
-  -webkit-perspective: 1200px;
-          perspective: 1200px; }
+  -webkit-perspective: 600px;
+          perspective: 600px; }
   #game-board-wrapper.unfold {
     -webkit-transform: translate3d(-50%, 0, 0);
             transform: translate3d(-50%, 0, 0); }
@@ -40,8 +47,8 @@ body {
   width: 100%;
   -webkit-transition: -webkit-transform 0.5s;
           transition: transform 0.5s;
-  -webkit-perspective: 1200px;
-          perspective: 1200px; }
+  -webkit-perspective: 600px;
+          perspective: 600px; }
 
 #game-board-front,
 #game-board-back {
@@ -62,9 +69,9 @@ body {
     opacity: 1; }
 
 #game-board-front {
-  background: #e0eae3;
-  color: #283d2f;
-  border: 2px solid #283d2f;
+  background: #e9ede9;
+  color: #343d34;
+  border: 2px solid #343d34;
   opacity: 0.91;
   -webkit-filter: none;
           filter: none;
@@ -90,9 +97,9 @@ body {
 
 #game-board-back {
   z-index: -1;
-  background: #283d2f;
-  color: #e0eae3;
-  border: 2px solid #e0eae3;
+  background: #343d34;
+  color: #e9ede9;
+  border: 2px solid #e9ede9;
   -webkit-filter: blur(1px);
           filter: blur(1px);
   -webkit-transition: -webkit-transform 0.5s;
@@ -126,7 +133,6 @@ body {
   float: left;
   width: 52px;
   height: 52px;
-  line-height: 50px;
   font-size: 16px;
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
@@ -134,6 +140,8 @@ body {
   margin: -1px;
   text-align: center;
   -webkit-font-smoothing: antialiased; }
+  .tile:before {
+    line-height: 50px; }
 
 #player {
   z-index: 2;
@@ -145,67 +153,67 @@ body {
   height: 50px;
   -webkit-transition: -webkit-transform 0.1s, color 0.5s;
           transition: transform 0.1s, color 0.5s;
-  color: #283d2f;
+  color: #343d34;
   font-size: 21px; }
   #player.flip {
-    color: #e0eae3; }
-    #player.flip:before {
-      -webkit-animation: jump 0.5s;
-              animation: jump 0.5s; }
-  #player.flip-back:before {
+    color: #e9ede9;
+    -webkit-animation: jump 0.5s;
+            animation: jump 0.5s; }
+  #player.flip-back {
     -webkit-animation: jump-again 0.5s;
             animation: jump-again 0.5s; }
 
 @-webkit-keyframes jump {
   50% {
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5); } }
+    font-size: 42px; } }
 
 @keyframes jump {
   50% {
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5); } }
+    font-size: 42px; } }
 @-webkit-keyframes jump-again {
   50% {
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5); } }
+    font-size: 42px; } }
 @keyframes jump-again {
   50% {
-    -webkit-transform: scale(1.5);
-            transform: scale(1.5); } }
+    font-size: 42px; } }
 /* =========================
    Tile Classes
    ========================= */
 #game-board-front .wall-right {
-  border-right: 2px solid #283d2f; }
+  border-right: 2px solid #343d34; }
 #game-board-front .wall-bottom {
-  border-bottom: 2px solid #283d2f; }
+  border-bottom: 2px solid #343d34; }
 
 #game-board-back .wall-right {
-  border-right: 2px solid #e0eae3; }
+  border-right: 2px solid #e9ede9; }
 #game-board-back .wall-bottom {
-  border-bottom: 2px solid #e0eae3; }
+  border-bottom: 2px solid #e9ede9; }
 
-.fa-key {
+.icon-key {
   -webkit-transition: color 0.5s;
           transition: color 0.5s; }
-  .hasKey .fa-key {
+  .hasKey .icon-key {
     color: transparent; }
+
+.icon-fire {
+  -webkit-transition: -webkit-transform 0.5s;
+          transition: transform 0.5s; }
+  .flipped .icon-fire {
+    -webkit-transform: rotateX(-180deg);
+            transform: rotateX(-180deg); }
 
 /* =========================
    Menu Classes
    ========================= */
 .navigation {
   position: relative;
-  text-align: center; }
+  text-align: center;
+  margin: 20px 0; }
 
 .nav-item {
   padding: 8px;
-  color: #e0eae3;
-  background: #507b5e;
-  -webkit-transform: none;
-      -ms-transform: none;
-          transform: none; }
+  color: #e9ede9;
+  background: #637463; }
   .nav-item:hover {
     cursor: pointer; }
 
