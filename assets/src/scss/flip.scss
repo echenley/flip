@@ -6,10 +6,13 @@
 
 $tile-size:      50px;
 $character-size: 16px;
+$arrow-key-size: 40px;
 
-$dark-color: #343d34;
-$background-color: lighten($dark-color, 20%); // #4a527d
-$light-color: lighten($dark-color, 70%);      // #dcdeea
+$dark-color: #343d3f;
+$background-color: lighten($dark-color, 20%);
+$light-color: lighten($dark-color, 70%);
+
+@import '_flip-icons';
 
 // Keyframes
 
@@ -19,16 +22,36 @@ $light-color: lighten($dark-color, 70%);      // #dcdeea
 }
 @keyframes open-blur {
     0%   { filter: blur(0); }
+    50%  { opacity: 0.91; }
     100% { filter: blur(1px); }
 }
-@keyframes open-colors {
-    50% { color: $light-color; }
+@keyframes unflipX {
+    0% { transform: rotateX(180deg); }
+    100% { transform: rotateX(0); }
 }
-@keyframes jump {
-    50% { font-size: 1.6 * ($character-size + 5px); }
+@keyframes flipX {
+    0%   { transform: rotateX(0); }
+    100% { transform: rotateX(180deg); }
 }
-@keyframes jump-again {
-    50% { font-size: 1.6 * ($character-size + 5px); }
+@keyframes reduce {
+    0%   { font-size: 120%; }
+    100% { font-size: 100%; }
+}
+@keyframes fire {
+    0%, 100% { transform: scale(1) rotate(0); }
+    25%  { transform: scale(1.1) rotate(-6deg); }
+    50%  { transform: scale(1) rotate(0); }
+    75%  { transform: scale(1.1) rotate(6deg); }
+}
+@keyframes fire-flipped {
+    0%, 100% { transform: scale(1) rotate(0) rotateX(180deg); }
+    25% { transform: scale(1.1) rotate(-6deg) rotateX(180deg); }
+    50% { transform: scale(1) rotate(0) rotateX(180deg); }
+    75% { transform: scale(1.1) rotate(6deg) rotateX(180deg); }
+}
+@keyframes fly-away {
+    25%  { transform: rotate(-45deg) scale(2); }
+    100% { transform: rotate(-45deg) scale(2) translate(2000px, 200px); }
 }
 
 // The stuff
@@ -38,6 +61,7 @@ body {
     background: $background-color;
     color: $light-color;
     perspective: 1000px;
+    text-align: center;
 }
 
 .header {
@@ -60,8 +84,8 @@ body {
 
 #container {
     position: relative;
-    margin: 80px auto;
-    max-width: 500px;
+    display: inline-block;
+    margin: 50px 0;
     text-align: center;
 }
 
@@ -69,11 +93,14 @@ body {
 #game-board-wrapper {
     position: relative;
     display: inline-block;
-    transition: transform 0.5s;
+    transition: transform 1s;
     cursor: default;
-    perspective: 600px;
-    &.unfold {
-        transform: translate3d(-50%, 0, 0);
+    perspective: 800px;
+    transform-style: preserve-3d;
+    // animation: open-flip 1.5s;
+    transform: rotateY(0deg);
+    &.peek {
+        transform: rotateY(180deg);
     }
 }
 
@@ -84,8 +111,15 @@ body {
     width: 100%;
     transition: transform 0.5s;
     transform-style: preserve-3d;
-    perspective: 600px;
-    animation: open-flip 1.5s;
+    &.flipX {
+        transform: rotateX(180deg) rotateY(0);
+    }
+    &.flipY {
+        transform: rotateX(0) rotateY(180deg);
+    }
+    &.flipX.flipY {
+        transform: rotateX(180deg) rotateY(180deg);
+    }
 }
 
 #game-board-front,
@@ -94,39 +128,24 @@ body {
     top: 0; bottom: 0; left: 0; right: 0;
     padding: 1px;
     transition: filter 0.5s,
+                -webkit-filter 0.5s,
                 background 0.5s,
                 border-color 0.5s,
-                color 0.5s;
-    overflow: hidden;
-    .unfold &,
-    .unfold .flipped & {
-        filter: none;
-        opacity: 1;
-    }
+                color 0.5s,
+                opacity 0.5s;
 }
 
 #game-board-front {
+    z-index: 1;
     background: $light-color;
     color: $dark-color;
     border: 2px solid $dark-color;
     opacity: 0.91;
     filter: none;
-    transition: transform 0.5s,
-                opacity 0.5s;
-    transform-origin: left;
-    transform: translateZ(1px);
-    .invert-x & {
-        transform-origin: right;
-    }
+    transform: translate3d(0, 0, 1px);
     .flipped & {
-        opacity: 0.09;
+        opacity: 1;
         filter: blur(1px);
-    }
-    .unfold .flipped & {
-        transform: rotateY(180deg) translateZ(1px);
-    }
-    .unfold.invert-x .flipped & {
-        transform: rotateY(-180deg) translateZ(1px);
     }
 
 }
@@ -135,21 +154,12 @@ body {
     background: $dark-color;
     color: $light-color;
     border: 2px solid $light-color;
+    opacity: 1;
     filter: blur(1px);
-    transition: transform 0.5s;
-    transform-origin: right;
-    animation: open-blur 2s;
-    .invert-x & {
-        transform-origin: left;
-    }
+    transform: translate3d(0, 0, -1px);
     .flipped & {
+        opacity: 0.91;
         filter: none;
-    }
-    .unfold #game-board:not(.flipped) & {
-        transform: rotateY(-180deg);
-    }
-    .unfold.invert-x #game-board:not(.flipped) & {
-        transform: rotateY(180deg);
     }
 }
 
@@ -170,26 +180,43 @@ body {
 }
 
 #player {
-    z-index: 2;
     position: absolute;
     top: 0; left: 0;
     margin: 2px 0 0 2px;
     width: $tile-size;
     height: $tile-size;
-    transition: transform 0.1s,
+    transition: filter 0.5s,
+                -webkit-filter 0.5s,
+                transform 0.1s,
                 color 0.5s;
     color: $dark-color;
     font-size: $character-size + 5px;
-    transform: translateZ(2px);
-    animation: open-colors 1.5s;
+    &:before {
+        animation: reduce 1s;
+    }
     &.flip {
         color: $light-color;
-        &:before {
-            animation: jump 0.5s;
+    }
+    .peek & {
+        transition: filter 0.5s,
+                    -webkit-filter 0.5s,
+                    transform 0.5s,
+                    color 0.5s;
+        filter: blur(1px);
+        &.unflip {
+            color: $light-color;
+        }
+        &.flip {
+            color: $dark-color; 
         }
     }
-    &.unflip:before {
-        animation: jump-again 0.5s;
+    &.dead:before {
+        transition: transform 0.5s;
+        transform: rotate(90deg);
+    }
+    &.win:before {
+        transition: transform 1s;
+        transform: scale(0);
     }
 }
 
@@ -224,9 +251,27 @@ body {
 }
 
 .icon-fire {
-    transition: transform 0.5s;
-    .flipped & {
-        transform: rotateX(-180deg);
+    font-size: 140%;
+    &:before {
+        animation: unflipX 0.5s,
+                   fire 3s 0.5s infinite linear;
+    }
+    .flipX &:before {
+        animation: flipX 0.5s,
+                   fire-flipped 3s 0.5s infinite linear;
+    }
+}
+
+.icon-space-ship {
+    .win &:before {
+        animation: fly-away 5s forwards;
+    }
+    &:before {
+        position: relative;
+        display: inline-block;
+        top: 4px;
+        font-size: 120%;
+        transform: rotate(-90deg);
     }
 }
 
@@ -234,6 +279,10 @@ body {
    Menu Classes
    ========================= */
 
+.clickable:hover {
+    cursor: pointer;
+    user-select: none;
+}
 
 .navigation {
     position: relative;
@@ -245,8 +294,58 @@ body {
     padding: 8px;
     color: $light-color;
     background: $background-color;
-    &:hover {
-        cursor: pointer;
+}
+
+.controls {
+    display: inline-block;
+}
+.arrow-keys {
+    margin: 0 auto;
+}
+
+.arrow-keys-line {
+    text-align: center;
+}
+
+.icon-arrow-up,
+.icon-arrow-down,
+.icon-arrow-left,
+.icon-arrow-right,
+.spacebar {
+    display: inline-block;
+    border-radius: 4px;
+    box-sizing: border-box;
+    border: 2px solid $light-color;
+    &:before {
+        display: inline-block;
+        height: $arrow-key-size;
+        font-size: 80%;
+        line-height: $arrow-key-size;
     }
 }
 
+.icon-arrow-up,
+.icon-arrow-down,
+.icon-arrow-left,
+.icon-arrow-right {
+    margin: 2px;
+    &:before {
+        margin: 0;
+        width: $arrow-key-size;
+    }
+}
+
+.icon-arrow-left {
+    margin-left: 0;
+}
+.icon-arrow-right {
+    margin-right: 0;
+}
+
+.spacebar {
+    margin-top: 10px;
+    width: 100%;
+    &:before {
+        content: "spacebar";
+    }
+}

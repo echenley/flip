@@ -7,31 +7,14 @@
 
 (function(React) {
 
+    React.initializeTouchEvents(true);
+
+    var PureRenderMixin = React.addons.PureRenderMixin;
+    var moveEnabled = false;
+    var touchable = true;
+    var keyIsDown = false;
+
     var levels = [
-    {
-        front: [['b','b','b','b','x'],
-                ['','b','b','r',''],
-                ['r','','yrb','r',''],
-                ['r','b','b','br',''],
-                ['','','','','']],
-        back:  [['','','','',''],
-                ['','','b','',''],
-                ['','r','Ebr','',''],
-                ['','','b','b','b'],
-                ['','','f','','']],
-        startPosition: { x: 0, y: 0 }
-    },
-    {
-        front: [['','yr','','E'],
-                ['','r','b',''],
-                ['','','r',''],
-                ['x','','r','x']],
-        back:  [['','r','',''],
-                ['yb','br','',''],
-                ['x','','','k'],
-                ['','','y','']],
-        startPosition: { x: 0, y: 0 }
-    },
     {
         front: [['b','bk','xb'],
                 ['r','','b'],
@@ -40,6 +23,30 @@
                 ['b','yrb','x'],
                 ['x','','']],
         startPosition: { x: 0, y: 1 }
+    },
+    {
+        front: [['','yr','','E'],
+                ['','r','b',''],
+                ['','','r',''],
+                ['x','f','r','x']],
+        back:  [['','fr','',''],
+                ['yb','br','',''],
+                ['x','','','k'],
+                ['','','y','']],
+        startPosition: { x: 0, y: 0 }
+    },
+    {
+        front: [['b','b','yb','fb','k'],
+                ['','b','b','yr',''],
+                ['r','','xrb','r',''],
+                ['yr','b','b','br','y'],
+                ['','','x','f','']],
+        back:  [['r','xr','r','ybr','x'],
+                ['yr','r','b','b',''],
+                ['r','fr','Ebr','xr','by'],
+                ['r','b','b','b','b'],
+                ['','x','f','','y']],
+        startPosition: { x: 0, y: 0 }
     }
     ];
 
@@ -54,13 +61,17 @@
 
     var Flip = React.createClass({displayName: 'Flip',
 
-        toggleFold: function() {
-            var unfold = this.state.unfold;
+        mixins: [PureRenderMixin],
+
+        togglePeek: function() {
+            var peek = this.state.peek;
+            var flipped = this.state.flipped;
             this.setState({
-                unfold: !unfold
+                peek: !peek,
+                flipped: !flipped
             });
         },
-        flip: function(axis, callback) {
+        flip: function(axis) {
             var playerPosition = this.state.playerPosition;
             var boardBoundary, oppositeAxis, flipX, flipY;
 
@@ -77,7 +88,7 @@
             }
 
             // update player position and css
-            playerPosition[oppositeAxis] = (boardBoundary - playerPosition[oppositeAxis] - 1);
+            playerPosition[oppositeAxis] = boardBoundary - playerPosition[oppositeAxis] - 1;
 
             // Update Game State
             this.setState({
@@ -88,9 +99,8 @@
             });
 
             setTimeout(function() {
-                if (callback) { callback(); }
                 // check for events again
-                this.performTileEvents(playerPosition, null, callback);
+                this.performTileEvents(playerPosition);
             }.bind(this), 500);
         },
         move: function(direction) {
@@ -104,26 +114,19 @@
                 y: from.y + (direction.y * invertY)
             };
 
-            function reEnableMove() {
-                this.setState({
-                    moveEnabled: true
-                });
-            }
-
-            if (!this.state.moveEnabled) {
+            if (!moveEnabled || this.state.death) {
                 return;
             }
 
             if (this.isValidMove(from, to, direction, tileset)) {
-
-                this.setState({
-                    moveEnabled: false
-                });
-
-                // Update Game State
+                // disable movement while action takes place
+                moveEnabled = false;
+                // update game state
                 this.setState({ playerPosition: to });
-                // perform any events on tile, with callback
-                this.performTileEvents(to, tileset, reEnableMove.bind(this));
+                // wait for move to complete, then perform any events on tile
+                setTimeout(function() {
+                    this.performTileEvents(to, tileset);
+                }.bind(this), 100);
             }
         },
         isValidMove: function(from, to, direction, tileset) {
@@ -162,50 +165,51 @@
             }
             return true;
         },
-        performTileEvents: function(tile, tileset, callback) {
+        performTileEvents: function(tile, tileset) {
 
             tileset = tileset || (this.state.flipped ? this.state.currentLevel.back : this.state.currentLevel.front);
             var tileCharacters = tileset[tile.y][tile.x].split('');
+            var newState = {};
 
             function tileContains(letter) {
                 return tileCharacters.indexOf(letter) !== -1;
             }
 
-            this.setState({ menuStatus: 'Get to your car.' });
-
             if (tileContains('x')) {
-                this.flip('x', callback);
+                this.flip('x');
             } else if (tileContains('y')) {
-                this.flip('y', callback);
-            } else if (tileContains('k') && !this.state.hasKey) {
-                this.setState({
-                    hasKey: true,
-                    menuStatus: 'Got the key!'
-                });
-                callback();
-            } else if (tileContains('f')) {
-                // no callback
-                this.setState({
-                    menuStatus: 'Oops, burned alive!'
-                });
-            } else if (tileContains('E')) {
-                this.checkWinCondition();
-                callback();
+                this.flip('y');
             } else {
-                callback();
+                if (tileContains('k') && !this.state.hasKey) {
+                    newState.hasKey = true;
+                    newState.menuStatus = 'Got the key!';
+                } else if (tileContains('f')) {
+                    newState.menuStatus = 'Oops, burned alive!';
+                    newState.death = true;
+                } else if (tileContains('E')) {
+                    this.checkWinCondition();
+                } else {
+                    newState.menuStatus = 'Get to your spaceship.';
+                }
+
+                // set that state
+                this.setState(newState);
+                // re-enable movement
+                moveEnabled = true;
             }
+
         },
         checkWinCondition: function() {
+            var newState = {};
             if (!this.state.flipX && this.state.hasKey) {
-                this.setState({
-                    win: true,
-                    menuStatus: 'You did it!'
-                });
+                newState.win = true;
+                newState.menuStatus = 'You did it!';
             } else if (this.state.flipX) {
-                this.setState({ menuStatus: 'Your car is upside down!' });
+                newState.menuStatus = 'Your ship is upside down!';
             } else {
-                this.setState({ menuStatus: 'Wait...where is your key?' });
+                newState.menuStatus = 'Oh no...where is your key?';
             }
+            this.setState(newState);
         },
         getDimensions: function(height, width) {
             var tileWidth = document.getElementById('player').offsetWidth;
@@ -215,7 +219,6 @@
             };
         },
         changeLevel: function(level) {
-
             if (!levels[level]) { return; }
 
             var newBoardDimensions = this.getDimensions(levels[level].height, levels[level].width);
@@ -227,46 +230,60 @@
                     y: levels[level].startPosition.y
                 },
                 boardDimensions: newBoardDimensions,
-                menuStatus: 'Get to your car.',
-                moveEnabled: true,
+                menuStatus: 'Get to your spaceship.',
                 flipX: false,
                 flipY: false,
                 flipped: false,
-                unfold: false,
+                peek: false,
                 hasKey: false,
-                win: false
+                win: false,
+                death: false
             });
+        },
+        beforeMove: function(direction) {
+            // don't do anything if already won
+            if (this.state.win) { return; }
+            if (this.state.peek) {
+                this.togglePeek();
+            } else {
+                this.move(direction);
+            }
         },
         handleKeyEvent: function(e) {
             var key = e.keyCode;
 
-            // don't do anything if already won
-            if (this.state.win) { return; }
-
-            // stop arrow keys from scrolling and stuff
+            // stop arrow keys/spacebar from scrolling
             if ([32,37,38,39,40].indexOf(key) !== -1) {
                 e.preventDefault();
             }
 
-            if (!this.state.unfold) {
-                if (key === 32) {
-                    this.toggleFold();
-                }
-                else if (key === 37) { this.move({x: -1, y:  0}); } // left
-                else if (key === 38) { this.move({x:  0, y: -1}); } // up
-                else if (key === 39) { this.move({x:  1, y:  0}); } // right
-                else if (key === 40) { this.move({x:  0, y:  1}); } // down
-            } else {
-                this.toggleFold();
+            // prevent multiple firings of spacebar with keyIsDown
+            if (key === 32 && !keyIsDown) {
+                keyIsDown = true;
+                this.togglePeek();
             }
+            else if (key === 37) { this.beforeMove({x: -1, y:  0}); } // left
+            else if (key === 38) { this.beforeMove({x:  0, y: -1}); } // up
+            else if (key === 39) { this.beforeMove({x:  1, y:  0}); } // right
+            else if (key === 40) { this.beforeMove({x:  0, y:  1}); } // down
         },
+
         componentDidMount: function() {
             // Keyboard Events
             window.addEventListener('keydown', this.handleKeyEvent);
+            window.addEventListener('keyup', function() {
+                keyIsDown = false;
+            });
+
             // set essential state properties
             this.setState({
-                boardDimensions: this.getDimensions(this.state.currentLevel.height, this.state.currentLevel.width)
+                boardDimensions: this.getDimensions(this.state.currentLevel.height, this.state.currentLevel.width),
+                peek: false
             });
+
+            setTimeout(function() {
+                moveEnabled = true;
+            }, 1000);
         },
         getInitialState: function() {
             return {
@@ -276,14 +293,14 @@
                     y: levels[0].startPosition.y
                 },
                 boardDimensions: { width: 0, height: 0 },
-                moveEnabled: true,
                 flipX: false,
                 flipY: false,
                 flipped: false,
-                unfold: false,
+                peek: true,
                 hasKey: false,
                 win: false,
-                menuStatus: 'Get to your car.',
+                death: false,
+                menuStatus: 'Get to your spaceship.',
                 totalLevels: levels.length
             };
         },
@@ -293,10 +310,20 @@
         },
         render: function() {
             /* jshint ignore:start */
+            var wrapperClass = this.state.peek ? 'peek' : '';
+                wrapperClass += this.state.hasKey ? ' hasKey' : '';
+                wrapperClass += this.state.win ? ' win' : '';
+            var gameBoardClass = this.state.flipped ? 'flipped' : '';
+                gameBoardClass += this.state.flipX ? ' flipX' : '';
+                gameBoardClass += this.state.flipY ? ' flipY' : '';
+            var playerClass = this.state.flipped ? ' flip' : ' unflip';
+                playerClass += this.state.win ? ' win' : '';
+                playerClass += this.state.death ? ' dead' : '';
             var playerPosition = this.state.playerPosition;
-            var wrapperClass = this.state.unfold ? 'unfold' : '';
-            wrapperClass += this.state.flipX ? ' invert-x' : '';
-            wrapperClass += this.state.hasKey ? ' hasKey' : '';
+            var gridPosition = {
+                x: this.state.flipY ? (this.state.currentLevel.width - playerPosition.x - 1) : playerPosition.x,
+                y: this.state.flipX ? (this.state.currentLevel.height - playerPosition.y - 1) : playerPosition.y
+            };
             return (
                 React.DOM.div({id: "game-container"}, 
                     HeaderMenu({
@@ -306,23 +333,18 @@
                         changeLevel: this.changeLevel}), 
                     React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClass}, 
                         GameBoard({
-                            flipState: {
-                                flipX: this.state.flipX,
-                                flipY: this.state.flipY,
-                                flipped: this.state.flipped
-                            }, 
+                            gameBoardClasses: gameBoardClass, 
                             tileSets: {
                                 front: this.state.currentLevel.front.reduce(this.concatenateBoard),
                                 back: this.state.currentLevel.back.reduce(this.concatenateBoard)
                             }}), 
                         Player({
-                            flipClass: this.state.flipped ? ' flip' : ' unflip', 
-                            position: {
-                                x: this.state.flipY ? (this.state.currentLevel.width - playerPosition.x - 1) : playerPosition.x,
-                                y: this.state.flipX ? (this.state.currentLevel.height - playerPosition.y - 1) : playerPosition.y
-                            }})
+                            playerClass: playerClass, 
+                            peeking: this.state.peek, 
+                            position: gridPosition})
                     ), 
-                    Hint({status: this.state.menuStatus})
+                    Hint({status: this.state.menuStatus}), 
+                    Controls({sendMove: this.beforeMove, sendPeek: this.togglePeek})
                 )
             );
             /* jshint ignore:end */
@@ -332,13 +354,22 @@
     // COMPONENT: Header Group (title and level indicator)
 
     var HeaderMenu = React.createClass({displayName: 'HeaderMenu',
+        toggleTouchable: function() {
+            touchable = false;
+            setTimeout(function() {
+                touchable = true;
+            }, 500);
+        },
         restartClickHandler: function() {
+            this.toggleTouchable();
             this.props.changeLevel(this.props.level-1);
         },
         nextLevelClickHandler: function() {
+            this.toggleTouchable();
             this.props.changeLevel(this.props.level);
         },
         prevLevelClickHandler: function() {
+            this.toggleTouchable();
             if (this.props.level > 1) {
                 this.props.changeLevel(this.props.level-2);
             }
@@ -350,9 +381,9 @@
                     React.DOM.h1({id: "title", className: this.props.titleClass}, React.DOM.span({className: "title-flip"}, "Flip"), " Flip"), 
                     React.DOM.h3({id: "subtitle"}, "Level ", this.props.level, "/", this.props.totalLevels), 
                     React.DOM.nav({className: "navigation"}, 
-                        React.DOM.a({className: "nav-item icon-left", title: "Previous Level", onClick: this.prevLevelClickHandler}), 
-                        React.DOM.a({className: "nav-item icon-refresh", title: "Restart Level", onClick: this.restartClickHandler}), 
-                        React.DOM.a({className: "nav-item icon-right", title: "Next Level", onClick: this.nextLevelClickHandler})
+                        React.DOM.a({className: "nav-item icon-left clickable", title: "Previous Level", onClick: this.prevLevelClickHandler, onTouchEnd: this.prevLevelClickHandler}), 
+                        React.DOM.a({className: "nav-item icon-refresh clickable", title: "Restart Level", onClick: this.restartClickHandler, onTouchEnd: this.restartClickHandler}), 
+                        React.DOM.a({className: "nav-item icon-right clickable", title: "Next Level", onClick: this.nextLevelClickHandler, onTouchEnd: this.nextLevelClickHandler})
                     )
                 )
                 /* jshint ignore:end */
@@ -361,24 +392,10 @@
     });
 
     var GameBoard = React.createClass({displayName: 'GameBoard',
-        getGameBoardStyle: function() {
-            var flipX = this.props.flipState.flipX,
-                flipY = this.props.flipState.flipY;
-            var rotateX = flipX ? '180deg' : 0,
-                rotateY = flipY ? '180deg' : 0;
-
-            var rotateStyle = 'rotateX(' + rotateX + ') rotateY(' + rotateY + ')';
-
-            return {
-                transform: rotateStyle,
-                webkitTransform: rotateStyle
-            };
-        },
         render: function() {
             /* jshint ignore:start */
-            var gameBoardStyle = this.getGameBoardStyle();
             return (
-                React.DOM.div({id: "game-board", className: this.props.flipState.flipped ? 'flipped' : '', style: gameBoardStyle}, 
+                React.DOM.div({id: "game-board", className: this.props.gameBoardClasses}, 
                     BoardFace({id: "game-board-front", tileset: this.props.tileSets.front}), 
                     BoardFace({id: "game-board-back", tileset: this.props.tileSets.back})
                 )
@@ -418,9 +435,8 @@
                 return tileClass;
             }
 
-            // http://fortawesome.github.io/Font-Awesome/icons/
             var fullClass = {
-                'E': ' icon-car',
+                'E': ' icon-space-ship',
                 'x': ' icon-flip-x',
                 'y': ' icon-flip-y',
                 'b': ' wall-bottom',
@@ -451,9 +467,10 @@
         getPosition: function() {
             var position = this.props.position;
             var tileWidth = 50;
-            var gridTranslate = 'translate3d(' +
-                (position.x * tileWidth) + 'px,' +
-                (position.y * tileWidth) + 'px, 2px)';
+            var translateX = position.x * tileWidth,
+                translateY = position.y * tileWidth,
+                translateZ = this.props.peeking ? '0' : '4px';
+            var gridTranslate = 'translate3d(' + translateX + 'px, ' + translateY + 'px, ' + translateZ + ')';
 
             return {
                 transform: gridTranslate,
@@ -463,14 +480,15 @@
         render: function() {
             /* jshint ignore:start */
             var playerStyle = this.getPosition();
+            var playerClass = 'tile icon-female' + this.props.playerClass;
             return (
-                React.DOM.div({className: 'tile icon-female' + this.props.flipClass, id: "player", style: playerStyle})
+                React.DOM.div({ref: "player", className: playerClass, id: "player", style: playerStyle})
             );
             /* jshint ignore:end */
         }
     });
 
-    // COMPONENT: Menu
+    // COMPONENT: Hint
 
     var Hint = React.createClass({displayName: 'Hint',
         render: function() {
@@ -478,6 +496,37 @@
             return (
                 React.DOM.div({id: "menu"}, 
                     React.DOM.p({className: "instruction"}, this.props.status)
+                )
+            );
+            /* jshint ignore:end */
+        }
+    });
+
+    // COMPONENT: Controls
+
+    var Controls = React.createClass({displayName: 'Controls',
+        handleClick: function(direction) {
+            if (direction === 'up')         { direction = {x:  0, y: -1}; }
+            else if (direction === 'down')  { direction = {x:  0, y:  1}; }
+            else if (direction === 'left')  { direction = {x: -1, y:  0}; }
+            else if (direction === 'right') { direction = {x:  1, y:  0}; }
+            this.props.sendMove(direction);
+        },
+        render: function() {
+            /* jshint ignore:start */
+            return (
+                React.DOM.div({className: "controls"}, 
+                    React.DOM.div({className: "arrow-keys"}, 
+                        React.DOM.div({className: "arrow-keys-line"}, 
+                            React.DOM.a({className: "icon-arrow-up clickable", onClick: this.handleClick.bind(this, 'up'), onTouchEnd: this.handleClick.bind(this, 'up')})
+                        ), 
+                        React.DOM.div({className: "arrow-keys-line"}, 
+                            React.DOM.a({className: "icon-arrow-left clickable", onClick: this.handleClick.bind(this, 'left'), onTouchEnd: this.handleClick.bind(this, 'left')}), 
+                            React.DOM.a({className: "icon-arrow-down clickable", onClick: this.handleClick.bind(this, 'down'), onTouchEnd: this.handleClick.bind(this, 'down')}), 
+                            React.DOM.a({className: "icon-arrow-right clickable", onClick: this.handleClick.bind(this, 'right'), onTouchEnd: this.handleClick.bind(this, 'right')})
+                        )
+                    ), 
+                    React.DOM.a({className: "spacebar clickable", onClick: this.props.sendPeek, onTouchEnd: this.props.sendPeek})
                 )
             );
             /* jshint ignore:end */
