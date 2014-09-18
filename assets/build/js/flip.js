@@ -213,6 +213,9 @@
         checkWinCondition: function() {
             var newState = {};
             if (!this.state.flipX && this.state.hasKey) {
+                if (zoomed) {
+                    zoom.out();
+                }
                 newState.win = true;
                 newState.menuStatus = 'You did it!';
             } else if (this.state.flipX) {
