@@ -52,11 +52,9 @@ $light-color: lighten($dark-color, 70%);
 @keyframes fly-away {
     25%  {
         transform: rotate(-45deg) scale(2);
-        text-shadow: -2px 2px 2px $dark-color;
     }
     100% {
         transform: rotate(-45deg) scale(2) translate(2000px, 200px);
-        text-shadow: -2px 2px 2px $dark-color;
     }
 }
 

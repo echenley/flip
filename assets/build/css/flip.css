@@ -275,24 +275,20 @@
   25% {
     -webkit-transform: rotate(-45deg) scale(2);
             transform: rotate(-45deg) scale(2);
-    text-shadow: -2px 2px 2px #333;
   }
   100% {
     -webkit-transform: rotate(-45deg) scale(2) translate(2000px, 200px);
             transform: rotate(-45deg) scale(2) translate(2000px, 200px);
-    text-shadow: -2px 2px 2px #333;
   }
 }
 @keyframes fly-away {
   25% {
     -webkit-transform: rotate(-45deg) scale(2);
             transform: rotate(-45deg) scale(2);
-    text-shadow: -2px 2px 2px #333;
   }
   100% {
     -webkit-transform: rotate(-45deg) scale(2) translate(2000px, 200px);
             transform: rotate(-45deg) scale(2) translate(2000px, 200px);
-    text-shadow: -2px 2px 2px #333;
   }
 }
 body {
