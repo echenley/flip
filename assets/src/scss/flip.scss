@@ -8,7 +8,7 @@ $tile-size:      50px;
 $character-size: 16px;
 $arrow-key-size: 40px;
 
-$dark-color: #343d3f;
+$dark-color: #333;
 $background-color: lighten($dark-color, 20%);
 $light-color: lighten($dark-color, 70%);
 
@@ -50,8 +50,14 @@ $light-color: lighten($dark-color, 70%);
     75% { transform: scale(1.1) rotate(6deg) rotateX(180deg); }
 }
 @keyframes fly-away {
-    25%  { transform: rotate(-45deg) scale(2); }
-    100% { transform: rotate(-45deg) scale(2) translate(2000px, 200px); }
+    25%  {
+        transform: rotate(-45deg) scale(2);
+        text-shadow: -2px 2px 2px $dark-color;
+    }
+    100% {
+        transform: rotate(-45deg) scale(2) translate(2000px, 200px);
+        text-shadow: -2px 2px 2px $dark-color;
+    }
 }
 
 // The stuff
@@ -245,6 +251,7 @@ body {
 
 .icon-key {
     transition: color 0.5s;
+    color: #990;
     .hasKey & {
         color: transparent;
     }
@@ -252,6 +259,7 @@ body {
 
 .icon-fire {
     font-size: 140%;
+    color: #d30;
     &:before {
         animation: unflipX 0.5s,
                    fire 3s 0.5s infinite linear;

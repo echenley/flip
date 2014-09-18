@@ -5,7 +5,7 @@
 // Author:     Evan Henley
 // Author URI: henleyedition.com
 
-(function(React) {
+(function(React,zoom) {
 
     React.initializeTouchEvents(true);
 
@@ -13,15 +13,16 @@
     var moveEnabled = false;
     var touchable = true;
     var keyIsDown = false;
+    var zoomed = false;
 
     var levels = [
     {
-        front: [['b','bk','xb'],
+        front: [['b','bk','x'],
                 ['r','','b'],
                 ['yr','x','E']],
         back:  [['','b','xb'],
                 ['b','yrb','x'],
-                ['x','','']],
+                ['x','',' ']],
         startPosition: { x: 0, y: 1 }
     },
     {
@@ -63,6 +64,16 @@
 
         mixins: [PureRenderMixin],
 
+        toggleZoom: function() {
+            if (zoomed) {
+                zoom.out();
+            } else {
+                zoom.to({
+                    element: document.getElementById('game-board-wrapper')
+                });
+            }
+            zoomed = !zoomed;
+        },
         togglePeek: function() {
             var peek = this.state.peek;
             var flipped = this.state.flipped;
@@ -331,7 +342,7 @@
                         totalLevels: this.state.totalLevels, 
                         titleClass: this.state.win ? 'spin' : '', 
                         changeLevel: this.changeLevel}), 
-                    React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClass}, 
+                    React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClass, onClick: this.toggleZoom}, 
                         GameBoard({
                             gameBoardClasses: gameBoardClass, 
                             tileSets: {
@@ -538,4 +549,4 @@
         document.getElementById('container')
     );
 
-}(React));
+}(React, zoom));
