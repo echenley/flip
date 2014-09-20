@@ -488,12 +488,12 @@ body {
 #game-board-front .wall-right {
   border-right: 2px solid #333;
 }
-#game-board-front .wall-bottom {
-  border-bottom: 2px solid #333;
-}
-
 #game-board-back .wall-right {
   border-right: 2px solid #e6e6e6;
+}
+
+#game-board-front .wall-bottom {
+  border-bottom: 2px solid #333;
 }
 #game-board-back .wall-bottom {
   border-bottom: 2px solid #e6e6e6;

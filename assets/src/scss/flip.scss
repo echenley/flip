@@ -230,21 +230,13 @@ body {
    ========================= */
 
 // walls
-#game-board-front {
-    .wall-right {
-        border-right: 2px solid $dark-color;
-    }
-    .wall-bottom {
-        border-bottom: 2px solid $dark-color;
-    }
+.wall-right {
+    #game-board-front & { border-right: 2px solid $dark-color; }
+    #game-board-back & { border-right: 2px solid $light-color; }
 }
-#game-board-back {
-    .wall-right {
-        border-right: 2px solid $light-color;
-    }
-    .wall-bottom {
-        border-bottom: 2px solid $light-color;
-    }
+.wall-bottom {
+    #game-board-front & { border-bottom: 2px solid $dark-color; }
+    #game-board-back & { border-bottom: 2px solid $light-color; }
 }
 
 .icon-key {

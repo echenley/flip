@@ -267,7 +267,7 @@
             var key = e.keyCode;
 
             // stop arrow keys/spacebar from scrolling
-            if ([32,37,38,39,40].indexOf(key) !== -1) {
+            if ([32,37,38,39,40,82].indexOf(key) !== -1) {
                 e.preventDefault();
             }
 
@@ -280,6 +280,9 @@
             else if (key === 38) { this.beforeMove({x:  0, y: -1}); } // up
             else if (key === 39) { this.beforeMove({x:  1, y:  0}); } // right
             else if (key === 40) { this.beforeMove({x:  0, y:  1}); } // down
+            else if (key === 82) { this.changeLevel(this.state.currentLevel.level - 1); }
+            else if (key === 188) { this.changeLevel(this.state.currentLevel.level - 2); }
+            else if (key === 190) { this.changeLevel(this.state.currentLevel.level); }
         },
 
         componentDidMount: function() {
