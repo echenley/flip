@@ -326,9 +326,11 @@ body {
 
 #container {
   position: relative;
-  display: inline-block;
+  display: block;
   margin: 50px 0;
+  width: 100%;
   text-align: center;
+  overflow: hidden;
 }
 
 #game-board-wrapper {
