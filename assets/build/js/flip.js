@@ -268,6 +268,9 @@
 
             // stop arrow keys/spacebar from scrolling
             if ([32,37,38,39,40,82].indexOf(key) !== -1) {
+                if (e.metaKey || e.ctrlKey) {  
+                    return;
+                }
                 e.preventDefault();
             }
 
@@ -327,15 +330,25 @@
         },
         render: function() {
             /* jshint ignore:start */
-            var wrapperClass = this.state.peek ? 'peek' : '';
-                wrapperClass += this.state.hasKey ? ' hasKey' : '';
-                wrapperClass += this.state.win ? ' win' : '';
-            var gameBoardClass = this.state.flipped ? 'flipped' : '';
-                gameBoardClass += this.state.flipX ? ' flipX' : '';
-                gameBoardClass += this.state.flipY ? ' flipY' : '';
-            var playerClass = this.state.flipped ? ' flip' : ' unflip';
-                playerClass += this.state.win ? ' win' : '';
-                playerClass += this.state.death ? ' dead' : '';
+
+            var cx = React.addons.classSet;
+            var wrapperClasses = cx({
+                'peek': this.state.peek,
+                'hasKey': this.state.hasKey,
+                'win': this.state.win
+            });
+            var gameBoardClasses = cx({
+                'flipped': this.state.flipped,
+                'flipX': this.state.flipX,
+                'flipY': this.state.flipY
+            });
+            var playerClasses = cx({
+                'tile': true,
+                'icon-female': true,
+                'flip': this.state.flipped,
+                'unflip': !this.state.flipped,
+                'dead': this.state.death
+            });
             var playerPosition = this.state.playerPosition;
             var gridPosition = {
                 x: this.state.flipY ? (this.state.currentLevel.width - playerPosition.x - 1) : playerPosition.x,
@@ -348,15 +361,15 @@
                         totalLevels: this.state.totalLevels, 
                         titleClass: this.state.win ? 'spin' : '', 
                         changeLevel: this.changeLevel}), 
-                    React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClass, onClick: this.toggleZoom}, 
+                    React.DOM.div({id: "game-board-wrapper", style: this.state.boardDimensions, className: wrapperClasses, onClick: this.toggleZoom}, 
                         GameBoard({
-                            gameBoardClasses: gameBoardClass, 
+                            gameBoardClasses: gameBoardClasses, 
                             tileSets: {
                                 front: this.state.currentLevel.front.reduce(this.concatenateBoard),
                                 back: this.state.currentLevel.back.reduce(this.concatenateBoard)
                             }}), 
                         Player({
-                            playerClass: playerClass, 
+                            playerClass: playerClasses, 
                             peeking: this.state.peek, 
                             position: gridPosition})
                     ), 
@@ -497,9 +510,8 @@
         render: function() {
             /* jshint ignore:start */
             var playerStyle = this.getPosition();
-            var playerClass = 'tile icon-female' + this.props.playerClass;
             return (
-                React.DOM.div({ref: "player", className: playerClass, id: "player", style: playerStyle})
+                React.DOM.div({ref: "player", className: this.props.playerClass, id: "player", style: playerStyle})
             );
             /* jshint ignore:end */
         }

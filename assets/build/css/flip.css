@@ -327,7 +327,7 @@ body {
 #container {
   position: relative;
   display: block;
-  margin: 50px 0;
+  padding: 50px 0;
   width: 100%;
   text-align: center;
   overflow: hidden;
@@ -476,7 +476,7 @@ body {
       -ms-transform: rotate(90deg);
           transform: rotate(90deg);
 }
-#player.win:before {
+.win #player:before {
   -webkit-transition: -webkit-transform 1s;
           transition: transform 1s;
   -webkit-transform: scale(0);
