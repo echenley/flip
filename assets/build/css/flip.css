@@ -97,52 +97,6 @@
 }
 
 /* '' */
-@-webkit-keyframes open-flip {
-  0% {
-    -webkit-transform: rotateY(-360deg);
-            transform: rotateY(-360deg);
-  }
-  100% {
-    -webkit-transform: rotateY(0deg);
-            transform: rotateY(0deg);
-  }
-}
-@keyframes open-flip {
-  0% {
-    -webkit-transform: rotateY(-360deg);
-            transform: rotateY(-360deg);
-  }
-  100% {
-    -webkit-transform: rotateY(0deg);
-            transform: rotateY(0deg);
-  }
-}
-@-webkit-keyframes open-blur {
-  0% {
-    -webkit-filter: blur(0);
-            filter: blur(0);
-  }
-  50% {
-    opacity: 0.91;
-  }
-  100% {
-    -webkit-filter: blur(1px);
-            filter: blur(1px);
-  }
-}
-@keyframes open-blur {
-  0% {
-    -webkit-filter: blur(0);
-            filter: blur(0);
-  }
-  50% {
-    opacity: 0.91;
-  }
-  100% {
-    -webkit-filter: blur(1px);
-            filter: blur(1px);
-  }
-}
 @-webkit-keyframes unflipX {
   0% {
     -webkit-transform: rotateX(180deg);
@@ -185,18 +139,18 @@
 }
 @-webkit-keyframes reduce {
   0% {
-    font-size: 120%;
+    font-size: 180%;
   }
   100% {
-    font-size: 100%;
+    font-size: 140%;
   }
 }
 @keyframes reduce {
   0% {
-    font-size: 120%;
+    font-size: 180%;
   }
   100% {
-    font-size: 100%;
+    font-size: 140%;
   }
 }
 @-webkit-keyframes fire {
@@ -295,8 +249,8 @@ body {
   font-family: Consolas, Monaco, 'Andale Mono', monospace;
   background: #666666;
   color: #e6e6e6;
-  -webkit-perspective: 1000px;
-          perspective: 1000px;
+  -webkit-perspective: 1600px;
+          perspective: 1600px;
   text-align: center;
 }
 
@@ -331,10 +285,14 @@ body {
   width: 100%;
   text-align: center;
   overflow: hidden;
+  -webkit-perspective: 1600px;
+          perspective: 1600px;
 }
 
 #game-board-wrapper {
   position: relative;
+  height: 500px;
+  width: 500px;
   display: inline-block;
   -webkit-transition: -webkit-transform 1s;
           transition: transform 1s;
@@ -355,6 +313,7 @@ body {
   position: relative;
   height: 100%;
   width: 100%;
+  padding: 1px;
   -webkit-transition: -webkit-transform 0.5s;
           transition: transform 0.5s;
   -webkit-transform-style: preserve-3d;
@@ -380,7 +339,6 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1px;
   -webkit-transition: -webkit-filter 0.5s, -webkit-filter 0.5s, background 0.5s, border-color 0.5s, color 0.5s, opacity 0.5s;
           transition: filter 0.5s, -webkit-filter 0.5s, background 0.5s, border-color 0.5s, color 0.5s, opacity 0.5s;
 }
@@ -420,37 +378,35 @@ body {
 }
 
 .tile {
+  position: relative;
   float: left;
-  width: 52px;
-  height: 52px;
-  font-size: 16px;
   -moz-box-sizing: border-box;
        box-sizing: border-box;
-  margin: -1px;
   text-align: center;
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
   -webkit-touch-callout: none;
+  line-height: 0 !important;
 }
 .tile:before {
-  line-height: 50px;
+  display: block;
+  width: 100%;
+  line-height: 0 !important;
+  margin: 0;
 }
 
 #player {
   position: absolute;
-  top: 0;
-  left: 0;
-  margin: 2px 0 0 2px;
-  width: 50px;
-  height: 50px;
+  top: 2px;
+  left: 2px;
   -webkit-transition: -webkit-filter 0.5s, -webkit-filter 0.5s, -webkit-transform 0.1s, color 0.5s;
           transition: filter 0.5s, -webkit-filter 0.5s, transform 0.1s, color 0.5s;
   color: #333;
-  font-size: 21px;
 }
 #player:before {
+  font-size: 140%;
   -webkit-animation: reduce 1s;
           animation: reduce 1s;
 }
@@ -487,17 +443,27 @@ body {
 /* =========================
    Tile Classes
    ========================= */
-#game-board-front .wall-right {
+#game-board-front .wall-right:after, #game-board-back .wall-right:after, #game-board-front .wall-bottom:after, #game-board-back .wall-bottom:after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#game-board-front .wall-right:after {
   border-right: 2px solid #333;
 }
-#game-board-back .wall-right {
+#game-board-back .wall-right:after {
   border-right: 2px solid #e6e6e6;
 }
 
-#game-board-front .wall-bottom {
+#game-board-front .wall-bottom:after {
   border-bottom: 2px solid #333;
 }
-#game-board-back .wall-bottom {
+#game-board-back .wall-bottom:after {
   border-bottom: 2px solid #e6e6e6;
 }
 
@@ -506,15 +472,18 @@ body {
           transition: color 0.5s;
   color: #990;
 }
+.icon-key:before {
+  font-size: 80%;
+}
 .hasKey .icon-key {
   color: transparent;
 }
 
 .icon-fire {
-  font-size: 140%;
   color: #d30;
 }
 .icon-fire:before {
+  font-size: 120%;
   -webkit-animation: unflipX 0.5s, fire 3s 0.5s infinite linear;
           animation: unflipX 0.5s, fire 3s 0.5s infinite linear;
 }
@@ -529,7 +498,7 @@ body {
 }
 .icon-space-ship:before {
   position: relative;
-  display: inline-block;
+  display: block;
   top: 4px;
   font-size: 120%;
   -webkit-transform: rotate(-90deg);

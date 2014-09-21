@@ -5,7 +5,7 @@
 // Author:     Evan Henley
 // Author URI: henleyedition.com
 
-(function(React,zoom) {
+(function(React) {
 
     React.initializeTouchEvents(true);
 
@@ -13,7 +13,6 @@
     var moveEnabled = false;
     var touchable = true;
     var keyIsDown = false;
-    var zoomed = false;
 
     var levels = [
     {
@@ -56,6 +55,13 @@
         level.level = i + 1;
         level.height = level.front.length;
         level.width = level.front[0].length;
+
+        var tileSize = 100 / level.width;
+        level.tileSize = {
+            width: tileSize + '%',
+            padding: (tileSize / 2) + '% 0',
+            fontSize: (tileSize * 1.4) + 'px'
+        };
     });
 
     // COMPONENT: Game Board
@@ -64,16 +70,6 @@
 
         mixins: [PureRenderMixin],
 
-        toggleZoom: function() {
-            if (zoomed) {
-                zoom.out();
-            } else {
-                zoom.to({
-                    element: document.getElementById('game-board-wrapper')
-                });
-            }
-            zoomed = !zoomed;
-        },
         togglePeek: function() {
             var peek = this.state.peek;
             var flipped = this.state.flipped;
@@ -213,9 +209,6 @@
         checkWinCondition: function() {
             var newState = {};
             if (!this.state.flipX && this.state.hasKey) {
-                if (zoomed) {
-                    zoom.out();
-                }
                 newState.win = true;
                 newState.menuStatus = 'You did it!';
             } else if (this.state.flipX) {
@@ -225,17 +218,8 @@
             }
             this.setState(newState);
         },
-        getDimensions: function(height, width) {
-            var tileWidth = document.getElementById('player').offsetWidth;
-            return {
-                height: tileWidth * height + 6 + 'px',
-                width: tileWidth * width + 6 + 'px'
-            };
-        },
         changeLevel: function(level) {
             if (!levels[level]) { return; }
-
-            var newBoardDimensions = this.getDimensions(levels[level].height, levels[level].width);
 
             this.setState({
                 currentLevel: levels[level],
@@ -243,7 +227,6 @@
                     x: levels[level].startPosition.x,
                     y: levels[level].startPosition.y
                 },
-                boardDimensions: newBoardDimensions,
                 menuStatus: 'Get to your spaceship.',
                 flipX: false,
                 flipY: false,
@@ -267,7 +250,7 @@
             var key = e.keyCode;
 
             // stop arrow keys/spacebar from scrolling
-            if ([32,37,38,39,40,82].indexOf(key) !== -1) {
+            if ([32,37,38,39,40,82,188,190].indexOf(key) !== -1) {
                 if (e.metaKey || e.ctrlKey) {  
                     return;
                 }
@@ -286,8 +269,8 @@
             else if (key === 82) { this.changeLevel(this.state.currentLevel.level - 1); }
             else if (key === 188) { this.changeLevel(this.state.currentLevel.level - 2); }
             else if (key === 190) { this.changeLevel(this.state.currentLevel.level); }
+            else if (key === 70) {}
         },
-
         componentDidMount: function() {
             // Keyboard Events
             window.addEventListener('keydown', this.handleKeyEvent);
@@ -297,7 +280,6 @@
 
             // set essential state properties
             this.setState({
-                boardDimensions: this.getDimensions(this.state.currentLevel.height, this.state.currentLevel.width),
                 peek: false
             });
 
@@ -312,7 +294,6 @@
                     x: levels[0].startPosition.x,
                     y: levels[0].startPosition.y
                 },
-                boardDimensions: { width: 0, height: 0 },
                 flipX: false,
                 flipY: false,
                 flipped: false,
@@ -361,17 +342,19 @@
                         totalLevels={this.state.totalLevels}
                         titleClass={this.state.win ? 'spin' : ''}
                         changeLevel={this.changeLevel} />
-                    <div id="game-board-wrapper" style={this.state.boardDimensions} className={wrapperClasses} onClick={this.toggleZoom}>
+                    <div id="game-board-wrapper" className={wrapperClasses}>
                         <GameBoard
                             gameBoardClasses={gameBoardClasses}
                             tileSets={{
                                 front: this.state.currentLevel.front.reduce(this.concatenateBoard),
                                 back: this.state.currentLevel.back.reduce(this.concatenateBoard)
-                            }} />
+                            }}
+                            tileSize={this.state.currentLevel.tileSize} />
                         <Player
                             playerClass={playerClasses}
                             peeking={this.state.peek}
-                            position={gridPosition} /> 
+                            position={gridPosition}
+                            playerStyle={this.state.currentLevel.tileSize} /> 
                     </div>
                     <Hint status={this.state.menuStatus} />
                     <Controls sendMove={this.beforeMove} sendPeek={this.togglePeek} />
@@ -426,8 +409,8 @@
             /* jshint ignore:start */
             return (
                 <div id="game-board" className={this.props.gameBoardClasses}>
-                    <BoardFace id="game-board-front" tileset={this.props.tileSets.front} />
-                    <BoardFace id="game-board-back" tileset={this.props.tileSets.back} />
+                    <BoardFace id="game-board-front" tileset={this.props.tileSets.front} tileSize={this.props.tileSize} />
+                    <BoardFace id="game-board-back" tileset={this.props.tileSets.back} tileSize={this.props.tileSize} />
                 </div>
             );
             /* jshint ignore:end */
@@ -441,11 +424,11 @@
             /* jshint ignore:start */
             var tiles = this.props.tileset;
             return (
-                <div id={this.props.id} className={this.props.classes} style={this.props.boardDimensions}>
+                <div id={this.props.id} className={this.props.classes}>
                     {
                         tiles.map(function(tileText, position) {
                             return (
-                                <Tile tileText={tileText} key={position} />
+                                <Tile tileText={tileText} key={position} tileSize={this.props.tileSize} />
                             );
                         }, this)
                     }
@@ -455,7 +438,7 @@
         }
     });
 
-    // COMPONENT: Single Tile
+    // COMPONENT: Tile, single
 
     var Tile = React.createClass({
         getTileClassOf: function(tileText) {
@@ -485,7 +468,7 @@
         render: function() {
             return (
                 /* jshint ignore:start */
-                <div className={this.getTileClassOf(this.props.tileText)}></div>
+                <div className={this.getTileClassOf(this.props.tileText)} style={this.props.tileSize}></div>
                 /* jshint ignore:end */
             );
         }
@@ -494,22 +477,27 @@
     // COMPONENT: Player Tile
 
     var Player = React.createClass({
-        getPosition: function() {
+        getPlayerStyle: function() {
+            var playerStyle = {
+                width: this.props.playerStyle.width,
+                padding: this.props.playerStyle.padding,
+                fontSize: this.props.playerStyle.fontSize
+            };
             var position = this.props.position;
-            var tileWidth = 50;
+            // tileWidth = game board size / tile width
+            var tileWidth = 5 * (playerStyle.width.substring(0, playerStyle.width.length - 1));
             var translateX = position.x * tileWidth,
                 translateY = position.y * tileWidth,
                 translateZ = this.props.peeking ? '0' : '4px';
             var gridTranslate = 'translate3d(' + translateX + 'px, ' + translateY + 'px, ' + translateZ + ')';
 
-            return {
-                transform: gridTranslate,
-                webkitTransform: gridTranslate
-            };
+            playerStyle.transform = gridTranslate;
+            playerStyle.webkitTransform = gridTranslate;
+            return playerStyle;
         },
         render: function() {
             /* jshint ignore:start */
-            var playerStyle = this.getPosition();
+            var playerStyle = this.getPlayerStyle();
             return (
                 <div ref="player" className={this.props.playerClass} id="player" style={playerStyle}></div>
             );
@@ -567,4 +555,4 @@
         document.getElementById('container')
     );
 
-}(React, zoom));
+}(React));
