@@ -1,5 +1,5 @@
-Flip - A ReactJS Game
-=====================
+Flip - A Game About Perspective
+===============================
 
 Demo: http://henleyedition.com/flip-a-reactjs-game/
 
